@@ -1,0 +1,119 @@
+CLASS zcl_big_integer DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    INTERFACES zif_big_integer .
+
+    ALIASES abs
+      FOR zif_big_integer~abs .
+    ALIASES add
+      FOR zif_big_integer~add .
+    ALIASES subtract
+      FOR zif_big_integer~subtract .
+
+    METHODS constructor
+      IMPORTING
+        !iv_number TYPE string .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+    TYPES:
+      tt_number TYPE STANDARD TABLE OF i WITH DEFAULT KEY .
+
+    CONSTANTS mc_negative_sign TYPE char01 VALUE '-' ##NO_TEXT.
+    DATA mt_number TYPE tt_number .
+    DATA mv_negative TYPE abap_bool .
+    DATA mv_number TYPE string .
+
+    METHODS convert_string_to_array
+      IMPORTING
+        !iv_number       TYPE string
+      RETURNING
+        VALUE(rt_number) TYPE tt_number .
+    METHODS convert_array_to_string
+      IMPORTING
+        !it_number       TYPE tt_number
+      RETURNING
+        VALUE(rv_number) TYPE string .
+ENDCLASS.
+
+
+
+CLASS zcl_big_integer IMPLEMENTATION.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->CONSTRUCTOR
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_NUMBER                      TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD constructor.
+
+    mv_number = iv_number.
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->CONVERT_ARRAY_TO_STRING
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_NUMBER                      TYPE        TT_NUMBER
+* | [<-()] RV_NUMBER                      TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD convert_array_to_string.
+
+    LOOP AT it_number
+         ASSIGNING FIELD-SYMBOL(<number>).
+      rv_number = rv_number && <number>.
+    ENDLOOP.
+    IF mv_negative EQ abap_true.
+      rv_number = mc_negative_sign && rv_number.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->CONVERT_STRING_TO_ARRAY
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_NUMBER                      TYPE        STRING
+* | [<-()] RT_NUMBER                      TYPE        TT_NUMBER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD convert_string_to_array.
+
+    mv_negative = COND #( WHEN iv_number+0(1) EQ mc_negative_sign THEN abap_true
+                          ELSE abap_false ).
+
+
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~ABS
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_big_integer~abs.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~ADD
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_NUMBER_TO_ADD               TYPE REF TO ZIF_BIG_INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_big_integer~add.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~SUBTRACT
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_NUMBER_TO_SUBTRACT          TYPE REF TO ZIF_BIG_INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_big_integer~subtract.
+  ENDMETHOD.
+ENDCLASS.
