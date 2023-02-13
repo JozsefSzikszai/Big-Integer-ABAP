@@ -1,0 +1,10 @@
+INTERFACE zif_big_integer
+  PUBLIC .
+  METHODS abs .
+  METHODS add
+    IMPORTING
+      !iv_number_to_add TYPE REF TO zif_big_integer .
+  METHODS subtract
+    IMPORTING
+      !iv_number_to_subtract TYPE REF TO zif_big_integer .
+ENDINTERFACE.
