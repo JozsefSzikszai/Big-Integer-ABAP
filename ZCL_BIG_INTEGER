@@ -11,8 +11,18 @@ CLASS zcl_big_integer DEFINITION
       FOR zif_big_integer~abs .
     ALIASES add
       FOR zif_big_integer~add .
+    ALIASES divide
+      FOR zif_big_integer~divide .
+    ALIASES multiply
+      FOR zif_big_integer~multiply .
     ALIASES subtract
       FOR zif_big_integer~subtract .
+    ALIASES to_array
+      FOR zif_big_integer~to_array .
+    ALIASES to_string
+      FOR zif_big_integer~to_string .
+    ALIASES tt_digits
+      FOR zif_big_integer~tt_digits .
 
     METHODS constructor
       IMPORTING
@@ -20,11 +30,9 @@ CLASS zcl_big_integer DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    TYPES:
-      tt_number TYPE STANDARD TABLE OF i WITH DEFAULT KEY .
-
     CONSTANTS mc_negative_sign TYPE char01 VALUE '-' ##NO_TEXT.
-    DATA mt_number TYPE tt_number .
+    CONSTANTS mc_zero TYPE string VALUE '0' ##NO_TEXT.
+    DATA mt_digits TYPE tt_digits .
     DATA mv_negative TYPE abap_bool .
     DATA mv_number TYPE string .
 
@@ -32,10 +40,10 @@ CLASS zcl_big_integer DEFINITION
       IMPORTING
         !iv_number       TYPE string
       RETURNING
-        VALUE(rt_number) TYPE tt_number .
+        VALUE(rt_number) TYPE tt_digits .
     METHODS convert_array_to_string
       IMPORTING
-        !it_number       TYPE tt_number
+        !it_number       TYPE tt_digits
       RETURNING
         VALUE(rv_number) TYPE string .
 ENDCLASS.
@@ -53,6 +61,8 @@ CLASS zcl_big_integer IMPLEMENTATION.
   METHOD constructor.
 
     mv_number = iv_number.
+    SHIFT mv_number LEFT DELETING LEADING '0'.
+    mt_digits = convert_string_to_array( mv_number ).
 
   ENDMETHOD.
 
@@ -60,7 +70,7 @@ CLASS zcl_big_integer IMPLEMENTATION.
 * <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Private Method ZCL_BIG_INTEGER->CONVERT_ARRAY_TO_STRING
 * +-------------------------------------------------------------------------------------------------+
-* | [--->] IT_NUMBER                      TYPE        TT_NUMBER
+* | [--->] IT_NUMBER                      TYPE        TT_DIGITS
 * | [<-()] RV_NUMBER                      TYPE        STRING
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD convert_array_to_string.
@@ -80,14 +90,20 @@ CLASS zcl_big_integer IMPLEMENTATION.
 * | Instance Private Method ZCL_BIG_INTEGER->CONVERT_STRING_TO_ARRAY
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IV_NUMBER                      TYPE        STRING
-* | [<-()] RT_NUMBER                      TYPE        TT_NUMBER
+* | [<-()] RT_NUMBER                      TYPE        TT_DIGITS
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD convert_string_to_array.
 
     mv_negative = COND #( WHEN iv_number+0(1) EQ mc_negative_sign THEN abap_true
                           ELSE abap_false ).
 
+    DATA(lv_position) = COND i( WHEN iv_number+0(1) EQ mc_negative_sign THEN 1
+                                ELSE 0 ).
 
+    WHILE lv_position LT strlen( iv_number ).
+      APPEND iv_number+lv_position(1) TO rt_number.
+      lv_position = lv_position + 1.
+    ENDWHILE.
 
   ENDMETHOD.
 
@@ -97,23 +113,94 @@ CLASS zcl_big_integer IMPLEMENTATION.
 * +-------------------------------------------------------------------------------------------------+
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~abs.
+
+    mv_negative = abap_false.
+
   ENDMETHOD.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~ADD
 * +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_NUMBER_TO_ADD               TYPE REF TO ZIF_BIG_INTEGER
+* | [--->] IO_NUMBER_TO_ADD               TYPE REF TO ZIF_BIG_INTEGER
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~add.
+
+    DATA result TYPE string.
+    DATA(number_to_add) = convert_string_to_array( io_number_to_add->to_string( ) ).
+    DATA(pos_num) = lines( mt_digits ).
+    DATA(pos_to_add) = lines( number_to_add ).
+    DATA(remainder) = 0.
+
+    DO.
+      IF pos_num    GT 0 AND
+         pos_to_add GT 0.
+        DATA(digit) = mt_digits[ pos_num ] + number_to_add[ pos_to_add ] + remainder.
+        remainder = 0.
+        IF digit GT 9.
+          digit = digit - 10.
+          remainder = 1.
+          SUBTRACT 1 FROM: pos_num,
+                           pos_to_add.
+        ENDIF.
+        result = digit && result.
+      ENDIF.
+      IF pos_num    EQ 0 AND
+         pos_to_add EQ 0.
+        EXIT.
+      ENDIF.
+    ENDDO.
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~DIVIDE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IO_NUMBER_TO_DIVIDE            TYPE REF TO ZIF_BIG_INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_big_integer~divide.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~MULTIPLY
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IO_NUMBER_TO_MULTIPLY          TYPE REF TO ZIF_BIG_INTEGER
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_big_integer~multiply.
   ENDMETHOD.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~SUBTRACT
 * +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_NUMBER_TO_SUBTRACT          TYPE REF TO ZIF_BIG_INTEGER
+* | [--->] IO_NUMBER_TO_SUBTRACT          TYPE REF TO ZIF_BIG_INTEGER
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~subtract.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~TO_ARRAY
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] RT_DIGITS                      TYPE        TT_DIGITS
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_big_integer~to_array.
+
+    rt_digits = mt_digits.
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~TO_STRING
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] RV_NUMBER                      TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_big_integer~to_string.
+
+    rv_number = mv_number.
+
   ENDMETHOD.
 ENDCLASS.
