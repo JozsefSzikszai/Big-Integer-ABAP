@@ -13,6 +13,10 @@ CLASS zcl_big_integer DEFINITION
       FOR zif_big_integer~add .
     ALIASES divide
       FOR zif_big_integer~divide .
+    ALIASES equals
+      FOR zif_big_integer~equals .
+    ALIASES get_sign
+      FOR zif_big_integer~get_sign .
     ALIASES multiply
       FOR zif_big_integer~multiply .
     ALIASES subtract
@@ -30,11 +34,12 @@ CLASS zcl_big_integer DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CONSTANTS mc_negative_sign TYPE char01 VALUE '-' ##NO_TEXT.
+    CONSTANTS mc_sign_negative TYPE char01 VALUE '-' ##NO_TEXT.
+    CONSTANTS mc_sign_positive TYPE char01 VALUE '+' ##NO_TEXT.
     CONSTANTS mc_zero TYPE string VALUE '0' ##NO_TEXT.
     DATA mt_digits TYPE tt_digits .
-    DATA mv_negative TYPE abap_bool .
     DATA mv_number TYPE string .
+    DATA mv_sign TYPE char01 .
 
     METHODS convert_string_to_array
       IMPORTING
@@ -46,6 +51,11 @@ CLASS zcl_big_integer DEFINITION
         !it_number       TYPE tt_digits
       RETURNING
         VALUE(rv_number) TYPE string .
+    METHODS decide_sign
+      IMPORTING
+        !iv_number     TYPE string
+      RETURNING
+        VALUE(rv_sign) TYPE char01 .
 ENDCLASS.
 
 
@@ -61,7 +71,13 @@ CLASS zcl_big_integer IMPLEMENTATION.
   METHOD constructor.
 
     mv_number = iv_number.
-    SHIFT mv_number LEFT DELETING LEADING '0'.
+    mv_sign = decide_sign( mv_number ).
+    IF mv_number NE mc_zero.
+      SHIFT mv_number LEFT DELETING LEADING '0'.
+      IF mv_number+0(1) CN '123456789'.
+        SHIFT mv_number LEFT BY 1 PLACES.
+      ENDIF.
+    ENDIF.
     mt_digits = convert_string_to_array( mv_number ).
 
   ENDMETHOD.
@@ -79,8 +95,8 @@ CLASS zcl_big_integer IMPLEMENTATION.
          ASSIGNING FIELD-SYMBOL(<number>).
       rv_number = rv_number && <number>.
     ENDLOOP.
-    IF mv_negative EQ abap_true.
-      rv_number = mc_negative_sign && rv_number.
+    IF mv_sign EQ mc_sign_negative.
+      rv_number = mc_sign_negative && rv_number.
     ENDIF.
 
   ENDMETHOD.
@@ -94,16 +110,25 @@ CLASS zcl_big_integer IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD convert_string_to_array.
 
-    mv_negative = COND #( WHEN iv_number+0(1) EQ mc_negative_sign THEN abap_true
-                          ELSE abap_false ).
-
-    DATA(lv_position) = COND i( WHEN iv_number+0(1) EQ mc_negative_sign THEN 1
-                                ELSE 0 ).
-
+    DATA(lv_position) = 0.
     WHILE lv_position LT strlen( iv_number ).
       APPEND iv_number+lv_position(1) TO rt_number.
       lv_position = lv_position + 1.
     ENDWHILE.
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->DECIDE_SIGN
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_NUMBER                      TYPE        STRING
+* | [<-()] RV_SIGN                        TYPE        CHAR01
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD decide_sign.
+
+    rv_sign = COND #( WHEN iv_number+0(1) = mc_sign_negative THEN mc_sign_negative
+                      ELSE mc_sign_positive ).
 
   ENDMETHOD.
 
@@ -114,7 +139,7 @@ CLASS zcl_big_integer IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~abs.
 
-    mv_negative = abap_false.
+    mv_sign = mc_sign_positive.
 
   ENDMETHOD.
 
@@ -127,29 +152,32 @@ CLASS zcl_big_integer IMPLEMENTATION.
   METHOD zif_big_integer~add.
 
     DATA result TYPE string.
-    DATA(number_to_add) = convert_string_to_array( io_number_to_add->to_string( ) ).
+    DATA(number_to_add) = io_number_to_add->to_array( ).
     DATA(pos_num) = lines( mt_digits ).
     DATA(pos_to_add) = lines( number_to_add ).
     DATA(remainder) = 0.
 
-    DO.
-      IF pos_num    GT 0 AND
-         pos_to_add GT 0.
-        DATA(digit) = mt_digits[ pos_num ] + number_to_add[ pos_to_add ] + remainder.
-        remainder = 0.
-        IF digit GT 9.
-          digit = digit - 10.
-          remainder = 1.
-          SUBTRACT 1 FROM: pos_num,
-                           pos_to_add.
-        ENDIF.
-        result = digit && result.
+    WHILE pos_num    GT 0
+       OR pos_to_add GT 0.
+      DATA(digit) = remainder.
+      remainder = 0.
+      IF pos_num GT 0.
+        digit = mt_digits[ pos_num ].
+        SUBTRACT 1 FROM pos_num.
       ENDIF.
-      IF pos_num    EQ 0 AND
-         pos_to_add EQ 0.
-        EXIT.
+      IF pos_to_add GT 0.
+        digit = digit + number_to_add[ pos_to_add ].
+        SUBTRACT 1 FROM pos_to_add.
       ENDIF.
-    ENDDO.
+      IF digit GT 9.
+        SUBTRACT 10 FROM digit.
+        remainder = 1.
+      ENDIF.
+      result = digit && result.
+    ENDWHILE.
+
+    mv_number = result.
+    mt_digits = convert_string_to_array( mv_number ).
 
   ENDMETHOD.
 
@@ -160,6 +188,35 @@ CLASS zcl_big_integer IMPLEMENTATION.
 * | [--->] IO_NUMBER_TO_DIVIDE            TYPE REF TO ZIF_BIG_INTEGER
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~divide.
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~EQUALS
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IO_BIG_INTEGER                 TYPE REF TO ZIF_BIG_INTEGER
+* | [<-()] RV_EQUAL                       TYPE        CHAR01
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_big_integer~equals.
+
+    IF mv_number   EQ io_big_integer->to_string( ) AND
+*       mv_negative EQ io_big_integer->get_negative_sign( ).
+      rv_equal = '0'.
+      RETURN.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~GET_SIGN
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] RV_SIGN                        TYPE        CHAR01
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_big_integer~get_sign.
+
+    rv_sign = mv_sign.
+
   ENDMETHOD.
 
 
