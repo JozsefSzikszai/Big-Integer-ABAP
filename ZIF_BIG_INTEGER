@@ -13,7 +13,7 @@ INTERFACE zif_big_integer
     IMPORTING
       !io_big_integer TYPE REF TO zif_big_integer
     RETURNING
-      VALUE(rv_equal) TYPE char01 .
+      VALUE(rv_equal) TYPE i .
   METHODS get_sign
     RETURNING
       VALUE(rv_sign) TYPE char01 .
