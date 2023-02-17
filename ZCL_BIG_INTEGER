@@ -127,7 +127,8 @@ CLASS zcl_big_integer IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD decide_sign.
 
-    rv_sign = COND #( WHEN iv_number+0(1) = mc_sign_negative THEN mc_sign_negative
+    rv_sign = COND #( WHEN iv_number = mc_zero               THEN space
+                      WHEN iv_number+0(1) = mc_sign_negative THEN mc_sign_negative
                       ELSE mc_sign_positive ).
 
   ENDMETHOD.
@@ -162,7 +163,7 @@ CLASS zcl_big_integer IMPLEMENTATION.
       DATA(digit) = remainder.
       remainder = 0.
       IF pos_num GT 0.
-        digit = mt_digits[ pos_num ].
+        digit = digit + mt_digits[ pos_num ].
         SUBTRACT 1 FROM pos_num.
       ENDIF.
       IF pos_to_add GT 0.
@@ -195,14 +196,30 @@ CLASS zcl_big_integer IMPLEMENTATION.
 * | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~EQUALS
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IO_BIG_INTEGER                 TYPE REF TO ZIF_BIG_INTEGER
-* | [<-()] RV_EQUAL                       TYPE        CHAR01
+* | [<-()] RV_EQUAL                       TYPE        I
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~equals.
 
-    IF mv_number   EQ io_big_integer->to_string( ) AND
-*       mv_negative EQ io_big_integer->get_negative_sign( ).
-      rv_equal = '0'.
-      RETURN.
+    IF mv_number EQ io_big_integer->to_string( ).
+      " Numbers are the same, check signs
+      IF mv_sign                     EQ mc_sign_positive AND
+         io_big_integer->get_sign( ) EQ mc_sign_negative.
+        rv_equal = 1.
+      ELSEIF mv_sign                     EQ mc_sign_negative AND
+             io_big_integer->get_sign( ) EQ mc_sign_positive.
+        rv_equal = -1.
+      ELSE.
+        rv_equal = 0.
+      ENDIF.
+    ELSEIF strlen( mv_number ) GT strlen( io_big_integer->to_string( ) ).
+      " Number is longer, check the signs
+      IF mv_sign EQ mc_sign_positive.
+        rv_equal = 1.
+      ELSE.
+        IF io_big_integer->get_sign( ) EQ mc_sign_positive.
+          rv_equal = -1.
+        ENDIF.
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -235,6 +252,32 @@ CLASS zcl_big_integer IMPLEMENTATION.
 * | [--->] IO_NUMBER_TO_SUBTRACT          TYPE REF TO ZIF_BIG_INTEGER
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~subtract.
+
+    DATA result TYPE string.
+    DATA(number_to_add) = io_number_to_subtract->to_array( ).
+    DATA(pos_num) = lines( mt_digits ).
+    DATA(pos_to_add) = lines( number_to_add ).
+    DATA(remainder) = 0.
+
+    WHILE pos_num    GT 0
+       OR pos_to_add GT 0.
+*      DATA(digit) = remainder.
+*      remainder = 0.
+*      IF pos_num GT 0.
+*        digit = mt_digits[ pos_num ].
+*        SUBTRACT 1 FROM pos_num.
+*      ENDIF.
+*      IF pos_to_add GT 0.
+*        digit = digit + number_to_add[ pos_to_add ].
+*        SUBTRACT 1 FROM pos_to_add.
+*      ENDIF.
+*      IF digit GT 9.
+*        SUBTRACT 10 FROM digit.
+*        remainder = 1.
+*      ENDIF.
+*      result = digit && result.
+    ENDWHILE.
+
   ENDMETHOD.
 
 
