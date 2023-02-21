@@ -60,7 +60,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_big_integer IMPLEMENTATION.
+CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
@@ -200,26 +200,33 @@ CLASS zcl_big_integer IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~equals.
 
-    IF mv_number EQ io_big_integer->to_string( ).
-      " Numbers are the same, check signs
-      IF mv_sign                     EQ mc_sign_positive AND
-         io_big_integer->get_sign( ) EQ mc_sign_negative.
-        rv_equal = 1.
-      ELSEIF mv_sign                     EQ mc_sign_negative AND
-             io_big_integer->get_sign( ) EQ mc_sign_positive.
-        rv_equal = -1.
-      ELSE.
-        rv_equal = 0.
-      ENDIF.
-    ELSEIF strlen( mv_number ) GT strlen( io_big_integer->to_string( ) ).
-      " Number is longer, check the signs
-      IF mv_sign EQ mc_sign_positive.
-        rv_equal = 1.
-      ELSE.
-        IF io_big_integer->get_sign( ) EQ mc_sign_positive.
-          rv_equal = -1.
-        ENDIF.
-      ENDIF.
+    " 1 inner number is greater
+    " 0 equal
+    " -1 outer number is greater
+
+    IF mv_number EQ '0'.
+      " Inner number is zero, check sign of outer number
+      rv_equal = SWITCH #( io_big_integer->get_sign( )
+                           WHEN mc_sign_positive THEN -1
+                           WHEN mc_sign_negative THEN 1
+                           ELSE 0 ).
+    ELSEIF io_big_integer->to_string( ) EQ '0'.
+      " Outer number is zero, check sign of inner number
+      rv_equal = SWITCH #( mv_sign
+                           WHEN mc_sign_positive THEN 1
+                           ELSE -1 ).
+    ELSEIF mv_sign EQ mc_sign_positive.
+      " Inner number is positive
+      rv_equal = COND #( WHEN io_big_integer->get_sign( ) EQ mc_sign_negative THEN 1
+                         WHEN strlen( io_big_integer->to_string( ) ) > strlen( mv_number ) THEN -1
+                         WHEN strlen( io_big_integer->to_string( ) ) < strlen( mv_number ) THEN 1 ).
+      "else ). "Compare numbers with equal lengths
+    ELSE.
+      " Inner number is negative
+      rv_equal = COND #( WHEN io_big_integer->get_sign( ) EQ mc_sign_positive THEN -1
+                         WHEN strlen( io_big_integer->to_string( ) ) > strlen( mv_number ) THEN 1
+                         WHEN strlen( io_big_integer->to_string( ) ) < strlen( mv_number ) THEN -1 ).
+      "else ). "Compare numbers with equal lengths
     ENDIF.
 
   ENDMETHOD.
