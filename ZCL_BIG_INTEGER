@@ -30,7 +30,9 @@ CLASS zcl_big_integer DEFINITION
 
     METHODS constructor
       IMPORTING
-        !iv_number TYPE string .
+        !iv_number TYPE string
+      RAISING
+        zcx_no_valid_number .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -67,17 +69,35 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * | Instance Public Method ZCL_BIG_INTEGER->CONSTRUCTOR
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IV_NUMBER                      TYPE        STRING
+* | [!CX!] ZCX_NO_VALID_NUMBER
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD constructor.
 
     mv_number = iv_number.
+
+    SHIFT mv_number LEFT DELETING LEADING '0'.
+
+    IF mv_number IS INITIAL.
+      mv_number = |0|.
+    ELSEIF strlen( mv_number ) EQ 1.
+      IF mv_number CN |0123456789|.
+        RAISE EXCEPTION TYPE zcx_no_valid_number.
+      ENDIF.
+    ELSE.
+      IF mv_number+0(1) CN |0123456789+-| AND
+         mv_number+1    CN |0123456789|.
+        RAISE EXCEPTION TYPE zcx_no_valid_number.
+      ENDIF.
+    ENDIF.
+
     mv_sign = decide_sign( mv_number ).
+
     IF mv_number NE mc_zero.
-      SHIFT mv_number LEFT DELETING LEADING '0'.
-      IF mv_number+0(1) CN '123456789'.
+      IF mv_number+0(1) CN |0123456789|.
         SHIFT mv_number LEFT BY 1 PLACES.
       ENDIF.
     ENDIF.
+
     mt_digits = convert_string_to_array( mv_number ).
 
   ENDMETHOD.
