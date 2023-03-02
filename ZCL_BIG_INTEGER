@@ -84,7 +84,7 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
         RAISE EXCEPTION TYPE zcx_no_valid_number.
       ENDIF.
     ELSE.
-      IF mv_number+0(1) CN |0123456789+-| AND
+      IF mv_number+0(1) CN |0123456789+-| OR
          mv_number+1    CN |0123456789|.
         RAISE EXCEPTION TYPE zcx_no_valid_number.
       ENDIF.
@@ -92,10 +92,9 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
     mv_sign = decide_sign( mv_number ).
 
-    IF mv_number NE mc_zero.
-      IF mv_number+0(1) CN |0123456789|.
-        SHIFT mv_number LEFT BY 1 PLACES.
-      ENDIF.
+    " Remove sign
+    IF mv_number+0(1) CN |0123456789|.
+      SHIFT mv_number LEFT BY 1 PLACES.
     ENDIF.
 
     mt_digits = convert_string_to_array( mv_number ).
