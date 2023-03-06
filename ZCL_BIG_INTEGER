@@ -34,35 +34,72 @@ CLASS zcl_big_integer DEFINITION
       RAISING
         zcx_no_valid_number .
   PROTECTED SECTION.
-  PRIVATE SECTION.
+private section.
 
-    CONSTANTS mc_sign_negative TYPE char01 VALUE '-' ##NO_TEXT.
-    CONSTANTS mc_sign_positive TYPE char01 VALUE '+' ##NO_TEXT.
-    CONSTANTS mc_zero TYPE string VALUE '0' ##NO_TEXT.
-    DATA mt_digits TYPE tt_digits .
-    DATA mv_number TYPE string .
-    DATA mv_sign TYPE char01 .
+  constants MC_SIGN_NEGATIVE type CHAR01 value '-' ##NO_TEXT.
+  constants MC_SIGN_POSITIVE type CHAR01 value '+' ##NO_TEXT.
+  constants MC_ZERO type STRING value '0' ##NO_TEXT.
+  data MT_DIGITS type TT_DIGITS .
+  data MV_NUMBER type STRING .
+  data MV_SIGN type CHAR01 .
 
-    METHODS convert_string_to_array
-      IMPORTING
-        !iv_number       TYPE string
-      RETURNING
-        VALUE(rt_number) TYPE tt_digits .
-    METHODS convert_array_to_string
-      IMPORTING
-        !it_number       TYPE tt_digits
-      RETURNING
-        VALUE(rv_number) TYPE string .
-    METHODS decide_sign
-      IMPORTING
-        !iv_number     TYPE string
-      RETURNING
-        VALUE(rv_sign) TYPE char01 .
+  methods COMPARE_EQUAL_LENGTH_NUMBERS
+    importing
+      !IT_DIGITS_TO_COMPARE type TT_DIGITS
+    returning
+      value(RV_EQUALS) type I .
+  methods CONVERT_ARRAY_TO_STRING
+    importing
+      !IT_NUMBER type TT_DIGITS
+    returning
+      value(RV_NUMBER) type STRING .
+  methods CONVERT_STRING_TO_ARRAY
+    importing
+      !IV_NUMBER type STRING
+    returning
+      value(RT_NUMBER) type TT_DIGITS .
+  methods DECIDE_SIGN
+    importing
+      !IV_NUMBER type STRING
+    returning
+      value(RV_SIGN) type CHAR01 .
+  methods REVERSE_EQUAL
+    importing
+      !IV_EQUALS type I
+    returning
+      value(RV_EQUALS) type I .
 ENDCLASS.
 
 
 
 CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->COMPARE_EQUAL_LENGTH_NUMBERS
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_DIGITS_TO_COMPARE           TYPE        TT_DIGITS
+* | [<-()] RV_EQUALS                      TYPE        I
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD compare_equal_length_numbers.
+
+    CHECK lines( mt_digits ) = lines( it_digits_to_compare ).
+
+    LOOP AT mt_digits
+         ASSIGNING FIELD-SYMBOL(<ls_digit>).
+      DATA(lv_digit) = it_digits_to_compare[ sy-tabix ].
+      IF <ls_digit> EQ lv_digit.
+        CONTINUE.
+      ELSEIF <ls_digit> GT lv_digit.
+        rv_equals = 1.
+        RETURN.
+      ELSE.
+        rv_equals = -1.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
@@ -154,6 +191,20 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->REVERSE_EQUAL
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_EQUALS                      TYPE        I
+* | [<-()] RV_EQUALS                      TYPE        I
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD reverse_equal.
+
+    rv_equals = COND #( WHEN iv_equals =  1 THEN -1
+                        WHEN iv_equals = -1 THEN 1 ).
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~ABS
 * +-------------------------------------------------------------------------------------------------+
 * +--------------------------------------------------------------------------------------</SIGNATURE>
@@ -238,13 +289,14 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
       " Inner number is positive
       rv_equal = COND #( WHEN io_big_integer->get_sign( ) EQ mc_sign_negative THEN 1
                          WHEN strlen( io_big_integer->to_string( ) ) > strlen( mv_number ) THEN -1
-                         WHEN strlen( io_big_integer->to_string( ) ) < strlen( mv_number ) THEN 1 ).
-      "else ). "Compare numbers with equal lengths
+                         WHEN strlen( io_big_integer->to_string( ) ) < strlen( mv_number ) THEN 1
+                         ELSE compare_equal_length_numbers( io_big_integer->to_array( ) ) ).
     ELSE.
       " Inner number is negative
       rv_equal = COND #( WHEN io_big_integer->get_sign( ) EQ mc_sign_positive THEN -1
                          WHEN strlen( io_big_integer->to_string( ) ) > strlen( mv_number ) THEN 1
-                         WHEN strlen( io_big_integer->to_string( ) ) < strlen( mv_number ) THEN -1 ).
+                         WHEN strlen( io_big_integer->to_string( ) ) < strlen( mv_number ) THEN -1
+                         ELSE reverse_equal( compare_equal_length_numbers( io_big_integer->to_array( ) ) ) ).
       "else ). "Compare numbers with equal lengths
     ENDIF.
 
