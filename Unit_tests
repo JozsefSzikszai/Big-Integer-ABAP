@@ -35,6 +35,10 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     " Invalid number
     METHODS constructor_invalid FOR TESTING.
     METHODS constructor_invalid_long FOR TESTING.
+    " Sign
+    METHODS sign_positive FOR TESTING.
+    METHODS sign_zero FOR TESTING.
+    METHODS sign_negative FOR TESTING.
     " Number as string
     METHODS to_string_zero FOR TESTING.
     METHODS to_string_zero_zero FOR TESTING.
@@ -66,6 +70,18 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS equals_negative_to_lower_neg FOR TESTING.
     METHODS equals_negative_to_greater_neg FOR TESTING.
     METHODS equals_negative_to_positive FOR TESTING.
+    " Absolute value
+    METHODS abs_positive FOR TESTING.
+    METHODS abs_zero FOR TESTING.
+    METHODS abs_negative FOR TESTING.
+    " Add
+    METHODS add_zero_and_zero FOR TESTING.
+    METHODS add_zero_and_positive FOR TESTING.
+    METHODS add_zero_and_negative FOR TESTING.
+    METHODS add_positive_and_zero FOR TESTING.
+    METHODS add_negative_and_zero FOR TESTING.
+    METHODS add_positive_and_positive FOR TESTING.
+    METHODS add_positive_and_negative FOR TESTING.
 
 ENDCLASS.       "lcl_Big_Integer
 
@@ -124,6 +140,42 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
         cl_abap_unit_assert=>assert_true( act = abap_true ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD sign_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |25| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->get_sign( )
+                                        exp = zcl_big_integer=>mc_sign_positive ).
+
+  ENDMETHOD.
+
+  METHOD sign_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->get_sign( )
+                                        exp = || ).
+
+  ENDMETHOD.
+
+  METHOD sign_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-29| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->get_sign( )
+                                        exp = zcl_big_integer=>mc_sign_negative ).
 
   ENDMETHOD.
 
@@ -219,7 +271,7 @@ CLASS lcl_big_integer IMPLEMENTATION.
     ENDTRY.
 
     cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
-                                        exp = |727| ).
+                                        exp = |-727| ).
 
   ENDMETHOD.
 
@@ -521,6 +573,181 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( act = lo_big_integer->equals( lo_big_integer_to_compare )
                                         exp = -1 ).
+
+  ENDMETHOD.
+
+  METHOD abs_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |57| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->abs( ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->get_sign( )
+                                        exp = |+| ).
+
+  ENDMETHOD.
+
+  METHOD abs_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->abs( ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->get_sign( )
+                                        exp = || ).
+
+  ENDMETHOD.
+
+  METHOD abs_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-624| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->abs( ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->get_sign( )
+                                        exp = |+| ).
+
+  ENDMETHOD.
+
+  METHOD add_zero_and_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD add_zero_and_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |85| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |85| ).
+
+  ENDMETHOD.
+
+  METHOD add_zero_and_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |-35| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-35| ).
+
+  ENDMETHOD.
+
+  METHOD add_positive_and_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |75| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |75| ).
+
+  ENDMETHOD.
+
+  METHOD add_negative_and_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-11| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-11| ).
+
+  ENDMETHOD.
+
+  METHOD add_positive_and_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |45| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |17| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |62| ).
+
+  ENDMETHOD.
+
+  METHOD add_positive_and_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |45| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |-8| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |37| ).
 
   ENDMETHOD.
 
