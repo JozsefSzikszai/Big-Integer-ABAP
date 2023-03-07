@@ -28,51 +28,98 @@ CLASS zcl_big_integer DEFINITION
     ALIASES tt_digits
       FOR zif_big_integer~tt_digits .
 
+    CONSTANTS mc_sign_negative TYPE char01 VALUE '-' ##NO_TEXT.
+    CONSTANTS mc_sign_positive TYPE char01 VALUE '+' ##NO_TEXT.
+
     METHODS constructor
       IMPORTING
         !iv_number TYPE string
       RAISING
         zcx_no_valid_number .
   PROTECTED SECTION.
-private section.
+  PRIVATE SECTION.
 
-  constants MC_SIGN_NEGATIVE type CHAR01 value '-' ##NO_TEXT.
-  constants MC_SIGN_POSITIVE type CHAR01 value '+' ##NO_TEXT.
-  constants MC_ZERO type STRING value '0' ##NO_TEXT.
-  data MT_DIGITS type TT_DIGITS .
-  data MV_NUMBER type STRING .
-  data MV_SIGN type CHAR01 .
+    CONSTANTS mc_zero TYPE string VALUE '0' ##NO_TEXT.
+    DATA mt_digits TYPE tt_digits .
+    DATA mv_number TYPE string .
+    DATA mv_sign TYPE char01 .
 
-  methods COMPARE_EQUAL_LENGTH_NUMBERS
-    importing
-      !IT_DIGITS_TO_COMPARE type TT_DIGITS
-    returning
-      value(RV_EQUALS) type I .
-  methods CONVERT_ARRAY_TO_STRING
-    importing
-      !IT_NUMBER type TT_DIGITS
-    returning
-      value(RV_NUMBER) type STRING .
-  methods CONVERT_STRING_TO_ARRAY
-    importing
-      !IV_NUMBER type STRING
-    returning
-      value(RT_NUMBER) type TT_DIGITS .
-  methods DECIDE_SIGN
-    importing
-      !IV_NUMBER type STRING
-    returning
-      value(RV_SIGN) type CHAR01 .
-  methods REVERSE_EQUAL
-    importing
-      !IV_EQUALS type I
-    returning
-      value(RV_EQUALS) type I .
+    METHODS add_two_numbers
+      IMPORTING
+        !it_digits        TYPE tt_digits
+        !it_digits_to_add TYPE tt_digits
+      RETURNING
+        VALUE(rv_result)  TYPE string .
+    METHODS compare_equal_length_numbers
+      IMPORTING
+        !it_digits_to_compare TYPE tt_digits
+      RETURNING
+        VALUE(rv_equals)      TYPE i .
+    METHODS convert_array_to_string
+      IMPORTING
+        !it_number       TYPE tt_digits
+      RETURNING
+        VALUE(rv_number) TYPE string .
+    METHODS convert_string_to_array
+      IMPORTING
+        !iv_number       TYPE string
+      RETURNING
+        VALUE(rt_number) TYPE tt_digits .
+    METHODS decide_sign
+      IMPORTING
+        !iv_number     TYPE string
+      RETURNING
+        VALUE(rv_sign) TYPE char01 .
+    METHODS remove_negative_sign
+      IMPORTING
+        !iv_number       TYPE string
+      RETURNING
+        VALUE(rv_number) TYPE string .
+    METHODS reverse_equal
+      IMPORTING
+        !iv_equals       TYPE i
+      RETURNING
+        VALUE(rv_equals) TYPE i .
 ENDCLASS.
 
 
 
-CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
+CLASS zcl_big_integer IMPLEMENTATION.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->ADD_TWO_NUMBERS
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_DIGITS                      TYPE        TT_DIGITS
+* | [--->] IT_DIGITS_TO_ADD               TYPE        TT_DIGITS
+* | [<-()] RV_RESULT                      TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD add_two_numbers.
+
+    DATA(pos_num) = lines( it_digits ).
+    DATA(pos_num_to_add) = lines( it_digits_to_add ).
+    DATA(remainder) = 0.
+
+    WHILE pos_num        GT 0
+       OR pos_num_to_add GT 0.
+      DATA(digit) = remainder.
+      remainder = 0.
+      IF pos_num GT 0.
+        digit = digit + it_digits[ pos_num ].
+        SUBTRACT 1 FROM pos_num.
+      ENDIF.
+      IF pos_num_to_add GT 0.
+        digit = digit + it_digits_to_add[ pos_num_to_add ].
+        SUBTRACT 1 FROM pos_num_to_add.
+      ENDIF.
+      IF digit GT 9.
+        SUBTRACT 10 FROM digit.
+        remainder = 1.
+      ENDIF.
+      rv_result = digit + rv_result.
+    ENDWHILE.
+
+  ENDMETHOD.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
@@ -191,6 +238,20 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->REMOVE_NEGATIVE_SIGN
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_NUMBER                      TYPE        STRING
+* | [<-()] RV_NUMBER                      TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD remove_negative_sign.
+
+    rv_number = COND #( WHEN iv_number+0(1) = mc_sign_negative THEN iv_number+1
+                        ELSE iv_number ).
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Private Method ZCL_BIG_INTEGER->REVERSE_EQUAL
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IV_EQUALS                      TYPE        I
@@ -210,6 +271,7 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~abs.
 
+    CHECK mv_number NE mc_zero.
     mv_sign = mc_sign_positive.
 
   ENDMETHOD.
@@ -222,33 +284,26 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~add.
 
-    DATA result TYPE string.
-    DATA(number_to_add) = io_number_to_add->to_array( ).
-    DATA(pos_num) = lines( mt_digits ).
-    DATA(pos_to_add) = lines( number_to_add ).
-    DATA(remainder) = 0.
+    " Zero will be added, nothing changes
+    IF io_number_to_add->to_string( ) = |0|.
+      RETURN.
+    ENDIF.
 
-    WHILE pos_num    GT 0
-       OR pos_to_add GT 0.
-      DATA(digit) = remainder.
-      remainder = 0.
-      IF pos_num GT 0.
-        digit = digit + mt_digits[ pos_num ].
-        SUBTRACT 1 FROM pos_num.
-      ENDIF.
-      IF pos_to_add GT 0.
-        digit = digit + number_to_add[ pos_to_add ].
-        SUBTRACT 1 FROM pos_to_add.
-      ENDIF.
-      IF digit GT 9.
-        SUBTRACT 10 FROM digit.
-        remainder = 1.
-      ENDIF.
-      result = digit && result.
-    ENDWHILE.
+    " Number is zero, added number will be the result
+    IF mv_number = |0|.
+      mv_number = remove_negative_sign( io_number_to_add->to_string( ) ).
+      mt_digits = io_number_to_add->to_array( ).
+      mv_sign = io_number_to_add->get_sign( ).
+      RETURN.
+    ENDIF.
 
-    mv_number = result.
-    mt_digits = convert_string_to_array( mv_number ).
+    " Both numbers are positive
+    IF mv_sign                       = mc_sign_positive AND
+       io_number_to_add->get_sign( ) = mc_sign_positive.
+      mv_number = add_two_numbers( it_digits        = mt_digits
+                                   it_digits_to_add = io_number_to_add->to_array( ) ).
+      mt_digits = convert_string_to_array( mv_number ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -294,8 +349,8 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
     ELSE.
       " Inner number is negative
       rv_equal = COND #( WHEN io_big_integer->get_sign( ) EQ mc_sign_positive THEN -1
-                         WHEN strlen( io_big_integer->to_string( ) ) > strlen( mv_number ) THEN 1
-                         WHEN strlen( io_big_integer->to_string( ) ) < strlen( mv_number ) THEN -1
+                         WHEN strlen( remove_negative_sign( io_big_integer->to_string( ) ) ) > strlen( mv_number ) THEN 1
+                         WHEN strlen( remove_negative_sign( io_big_integer->to_string( ) ) ) < strlen( mv_number ) THEN -1
                          ELSE reverse_equal( compare_equal_length_numbers( io_big_integer->to_array( ) ) ) ).
       "else ). "Compare numbers with equal lengths
     ENDIF.
@@ -379,6 +434,9 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
   METHOD zif_big_integer~to_string.
 
     rv_number = mv_number.
+    IF mv_sign = mc_sign_negative.
+      rv_number = mc_sign_negative && rv_number.
+    ENDIF.
 
   ENDMETHOD.
 ENDCLASS.
