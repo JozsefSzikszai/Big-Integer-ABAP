@@ -82,6 +82,17 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS add_negative_and_zero FOR TESTING.
     METHODS add_positive_and_positive FOR TESTING.
     METHODS add_positive_and_negative FOR TESTING.
+    METHODS add_negative_and_negative FOR TESTING.
+    " Subtract
+    METHODS subtract_zero_and_zero FOR TESTING.
+    METHODS subtract_zero_and_positive FOR TESTING.
+    METHODS subtract_zero_and_negative FOR TESTING.
+    METHODS subtract_positive_and_zero FOR TESTING.
+    METHODS subtract_negative_and_zero FOR TESTING.
+    METHODS subtract_positive_and_positive FOR TESTING.
+    METHODS subtract_positive_and_negative FOR TESTING.
+    METHODS subtract_negative_and_positive FOR TESTING.
+    METHODS subtract_negative_and_negative FOR TESTING.
 
 ENDCLASS.       "lcl_Big_Integer
 
@@ -750,5 +761,196 @@ CLASS lcl_big_integer IMPLEMENTATION.
                                         exp = |37| ).
 
   ENDMETHOD.
+
+  METHOD add_negative_and_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-84| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |-47| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-131| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_zero_and_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_zero_and_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |874| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-874| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_zero_and_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-17| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |17| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_positive_and_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |56| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |56| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_negative_and_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-22| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-22| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_positive_and_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |39| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |17| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |22| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_positive_and_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |87| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-27| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |114| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_negative_and_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-26| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |15| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-41| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_negative_and_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-46| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-39| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-7| ).
+
+  ENDMETHOD.
+
 
 ENDCLASS.
