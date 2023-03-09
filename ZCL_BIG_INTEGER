@@ -80,6 +80,11 @@ private section.
       !IV_EQUALS type I
     returning
       value(RV_EQUALS) type I .
+  methods REVERSE_SIGN
+    importing
+      !IV_SIGN type CHAR01
+    returning
+      value(RV_SIGN) type CHAR01 .
   methods SUBTRACT_TWO_NUMBERS
     importing
       !IT_DIGITS type TT_DIGITS
@@ -276,6 +281,21 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->REVERSE_SIGN
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_SIGN                        TYPE        CHAR01
+* | [<-()] RV_SIGN                        TYPE        CHAR01
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD reverse_sign.
+
+    rv_sign = COND #( WHEN mv_sign = mc_sign_positive THEN mc_sign_negative
+                      WHEN mv_sign = mc_sign_negative THEN mc_sign_positive
+                      ELSE || ).
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Private Method ZCL_BIG_INTEGER->SUBTRACT_TWO_NUMBERS
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IT_DIGITS                      TYPE        TT_DIGITS
@@ -460,10 +480,29 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF mv_sign                            = mc_sign_positive AND
-       io_number_to_subtract->get_sign( ) = mc_sign_positive.
-      mv_number = subtract_two_numbers( it_digits             = mt_digits
-                                        it_digits_to_subtract = io_number_to_subtract->to_array( ) ).
+    " Both numbers are equal => result is zero
+    IF mv_sign   = io_number_to_subtract->get_sign( ) AND
+       mv_number = remove_negative_sign( io_number_to_subtract->to_string( ) ).
+      mv_number = mc_zero.
+      CLEAR mv_sign.
+    ENDIF.
+
+    " Both numbers are positive, check which is higher and subtract lower from higher
+    IF ( mv_sign                            = mc_sign_positive    AND
+         io_number_to_subtract->get_sign( ) = mc_sign_positive ) OR
+       ( mv_sign                            = mc_sign_negative    AND
+         io_number_to_subtract->get_sign( ) = mc_sign_negative ).
+      DATA(lv_equals) = me->equals( io_number_to_subtract ).
+      CASE lv_equals.
+        WHEN 1.
+          mv_number = subtract_two_numbers( it_digits             = mt_digits
+                                            it_digits_to_subtract = io_number_to_subtract->to_array( ) ).
+        WHEN -1.
+          mv_number = subtract_two_numbers( it_digits             = io_number_to_subtract->to_array( )
+                                            it_digits_to_subtract = mt_digits ).
+          mv_sign = reverse_sign( mv_sign ).
+      ENDCASE.
+      mt_digits = convert_string_to_array( mv_number ).
     ENDIF.
 
   ENDMETHOD.
