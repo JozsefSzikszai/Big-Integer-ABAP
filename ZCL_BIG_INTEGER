@@ -362,27 +362,43 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
     " Number is zero, added number will be the result
     IF mv_number = |0|.
       mv_number = remove_negative_sign( io_number_to_add->to_string( ) ).
-      mt_digits = io_number_to_add->to_array( ).
+      mt_digits = convert_string_to_array( mv_number ).
       mv_sign = io_number_to_add->get_sign( ).
       RETURN.
     ENDIF.
 
     " Both numbers are positive or negative
-    IF ( mv_sign                       = mc_sign_positive   AND
-         io_number_to_add->get_sign( ) = mc_sign_positive ) OR
-       ( mv_sign                       = mc_sign_negative   AND
-         io_number_to_add->get_sign( ) = mc_sign_negative ).
+    IF mv_sign = io_number_to_add->get_sign( ).
       mv_number = add_two_numbers( it_digits        = mt_digits
                                    it_digits_to_add = io_number_to_add->to_array( ) ).
       mt_digits = convert_string_to_array( mv_number ).
     ENDIF.
 
-    " Number to add is negatie => subtract
-    IF mv_sign                       = mc_sign_positive AND
-       io_number_to_add->get_sign( ) = mc_sign_negative.
-      mv_number = subtract_two_numbers( it_digits = mt_digits
-                                        it_digits_to_subtract = io_number_to_add->to_array( ) ).
+    " One is positive, the other one is negative
+    IF mv_sign <> io_number_to_add->get_sign( ).
+
+      " Equal => zero
+      IF mv_number = remove_negative_sign( io_number_to_add->to_string( ) ).
+        mv_number = mc_zero.
+        CLEAR mt_digits.
+        mv_sign = space.
+        RETURN.
+      ENDIF.
+
+      " Decide which is greater and subtract
+      io_number_to_add->abs( ).
+      DATA(equal) = equals( io_number_to_add ).
+      CASE equal.
+        WHEN 1.
+          mv_number = subtract_two_numbers( it_digits             = mt_digits
+                                            it_digits_to_subtract = io_number_to_add->to_array( ) ).
+        WHEN -1.
+          mv_number = subtract_two_numbers( it_digits             = io_number_to_add->to_array( )
+                                            it_digits_to_subtract = mt_digits ).
+          mv_sign = mc_sign_negative.
+      ENDCASE.
       mt_digits = convert_string_to_array( mv_number ).
+      RETURN.
     ENDIF.
 
   ENDMETHOD.
@@ -487,10 +503,10 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
       CLEAR mv_sign.
     ENDIF.
 
-    " Both numbers are positive, check which is higher and subtract lower from higher
-    IF ( mv_sign                            = mc_sign_positive    AND
+    " Both numbers are positive or negative, check which is higher and subtract lower from higher
+    IF ( mv_sign                            = mc_sign_positive   AND
          io_number_to_subtract->get_sign( ) = mc_sign_positive ) OR
-       ( mv_sign                            = mc_sign_negative    AND
+       ( mv_sign                            = mc_sign_negative   AND
          io_number_to_subtract->get_sign( ) = mc_sign_negative ).
       DATA(lv_equals) = me->equals( io_number_to_subtract ).
       CASE lv_equals.
