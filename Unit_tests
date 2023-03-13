@@ -81,18 +81,37 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS add_positive_and_zero FOR TESTING.
     METHODS add_negative_and_zero FOR TESTING.
     METHODS add_positive_and_positive FOR TESTING.
-    METHODS add_positive_and_negative FOR TESTING.
+    METHODS add_pos_and_lower_neg FOR TESTING.
+    METHODS add_pos_and_equal_neg FOR TESTING.
+    METHODS add_pos_and_greater_neg FOR TESTING.
     METHODS add_negative_and_negative FOR TESTING.
+    METHODS add_neg_and_lower_pos FOR TESTING.
+    METHODS add_neg_and_equal_pos FOR TESTING.
+    METHODS add_neg_and_greater_pos FOR TESTING.
+
     " Subtract
     METHODS subtract_zero_and_zero FOR TESTING.
     METHODS subtract_zero_and_positive FOR TESTING.
     METHODS subtract_zero_and_negative FOR TESTING.
+
     METHODS subtract_positive_and_zero FOR TESTING.
     METHODS subtract_negative_and_zero FOR TESTING.
-    METHODS subtract_positive_and_positive FOR TESTING.
-    METHODS subtract_positive_and_negative FOR TESTING.
-    METHODS subtract_negative_and_positive FOR TESTING.
-    METHODS subtract_negative_and_negative FOR TESTING.
+
+    METHODS subtract_pos_and_lower_pos FOR TESTING.
+    METHODS subtract_pos_and_equal_pos FOR TESTING.
+    METHODS subtract_pos_and_greater_pos FOR TESTING.
+
+    METHODS subtract_pos_and_lower_new FOR TESTING.
+    METHODS subtract_pos_and_equal_neg FOR TESTING.
+    METHODS subtract_pos_and_greater_neg FOR TESTING.
+
+    METHODS subtract_neg_and_lower_pos FOR TESTING.
+    METHODS subtract_neg_and_equal_pos FOR TESTING.
+    METHODS subtract_neg_and_greater_pos FOR TESTING.
+
+    METHODS subtract_neg_and_lower_neg FOR TESTING.
+    METHODS subtract_neg_and_equal_neg FOR TESTING.
+    METHODS subtract_neg_and_greater_neg FOR TESTING.
 
 ENDCLASS.       "lcl_Big_Integer
 
@@ -743,7 +762,7 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD add_positive_and_negative.
+  METHOD add_pos_and_lower_neg.
 
     TRY.
         DATA(lo_big_integer) = zcl_big_integer_factory=>create( |45| ).
@@ -759,6 +778,44 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
                                         exp = |37| ).
+
+  ENDMETHOD.
+
+  METHOD add_pos_and_equal_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |77| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |-77| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD add_pos_and_greater_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |37| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |-81| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-44| ).
 
   ENDMETHOD.
 
@@ -778,6 +835,63 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
                                         exp = |-131| ).
+
+  ENDMETHOD.
+
+  METHOD add_neg_and_lower_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-71| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |46| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-25| ).
+
+  ENDMETHOD.
+
+  METHOD add_neg_and_equal_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-52| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |52| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD add_neg_and_greater_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-35| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_add) = zcl_big_integer_factory=>create( |53| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->add( lo_big_integer_to_add ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |18| ).
 
   ENDMETHOD.
 
@@ -876,7 +990,7 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD subtract_positive_and_positive.
+  METHOD subtract_pos_and_lower_pos.
 
     TRY.
         DATA(lo_big_integer) = zcl_big_integer_factory=>create( |39| ).
@@ -895,45 +1009,140 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD subtract_positive_and_negative.
+  METHOD subtract_pos_and_equal_pos.
 
     TRY.
-        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |87| ).
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |28| ).
       CATCH zcx_no_valid_number.
     ENDTRY.
 
     TRY.
-        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-27| ).
-      CATCH zcx_no_valid_number.
-    ENDTRY.
-
-    lo_big_integer->subtract( lo_big_integer_to_subtract ).
-
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
-                                        exp = |114| ).
-
-  ENDMETHOD.
-
-  METHOD subtract_negative_and_positive.
-
-    TRY.
-        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-26| ).
-      CATCH zcx_no_valid_number.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |15| ).
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-28| ).
       CATCH zcx_no_valid_number.
     ENDTRY.
 
     lo_big_integer->subtract( lo_big_integer_to_subtract ).
 
     cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
-                                        exp = |-41| ).
+                                        exp = |56| ).
 
   ENDMETHOD.
 
-  METHOD subtract_negative_and_negative.
+  METHOD subtract_pos_and_greater_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |27| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |45| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-18| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_pos_and_lower_new.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |27| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-17| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |44| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_pos_and_equal_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |31| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-31| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |62| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_pos_and_greater_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |29| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-35| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |64| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_neg_and_lower_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-45| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |27| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-82| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_neg_and_equal_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-36| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |36| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-72| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_neg_and_greater_pos.
 
     TRY.
         DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-46| ).
@@ -941,16 +1150,72 @@ CLASS lcl_big_integer IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-39| ).
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |65| ).
       CATCH zcx_no_valid_number.
     ENDTRY.
 
     lo_big_integer->subtract( lo_big_integer_to_subtract ).
 
     cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
-                                        exp = |-7| ).
+                                        exp = |111| ).
 
   ENDMETHOD.
 
+  METHOD subtract_neg_and_lower_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-36| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-11| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-25| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_neg_and_equal_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-79| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-79| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD subtract_neg_and_greater_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-46| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_subtract) = zcl_big_integer_factory=>create( |-59| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->subtract( lo_big_integer_to_subtract ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |13| ).
+
+  ENDMETHOD.
 
 ENDCLASS.
