@@ -41,7 +41,7 @@ private section.
 
   constants MC_ZERO type STRING value '0' ##NO_TEXT.
   data MT_DIGITS type TT_DIGITS .
-  data MV_NUMBER type STRING .
+  data MT_ZERO type TT_DIGITS .
   data MV_SIGN type CHAR01 .
 
   methods ADD_TWO_NUMBERS
@@ -49,7 +49,7 @@ private section.
       !IT_DIGITS type TT_DIGITS
       !IT_DIGITS_TO_ADD type TT_DIGITS
     returning
-      value(RV_RESULT) type STRING .
+      value(RT_RESULT) type TT_DIGITS .
   methods COMPARE_EQUAL_LENGTH_NUMBERS
     importing
       !IT_DIGITS_TO_COMPARE type TT_DIGITS
@@ -70,6 +70,7 @@ private section.
       !IV_NUMBER type STRING
     returning
       value(RV_SIGN) type CHAR01 .
+  methods INITIALIZE_ZERO .
   methods REMOVE_NEGATIVE_SIGN
     importing
       !IV_NUMBER type STRING
@@ -90,7 +91,7 @@ private section.
       !IT_DIGITS type TT_DIGITS
       !IT_DIGITS_TO_SUBTRACT type TT_DIGITS
     returning
-      value(RV_RESULT) type STRING .
+      value(RT_RESULT) type TT_DIGITS .
 ENDCLASS.
 
 
@@ -103,13 +104,14 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IT_DIGITS                      TYPE        TT_DIGITS
 * | [--->] IT_DIGITS_TO_ADD               TYPE        TT_DIGITS
-* | [<-()] RV_RESULT                      TYPE        STRING
+* | [<-()] RT_RESULT                      TYPE        TT_DIGITS
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD add_two_numbers.
 
     DATA(pos_num) = lines( it_digits ).
     DATA(pos_num_to_add) = lines( it_digits_to_add ).
     DATA(remainder) = 0.
+    DATA(result) = ||.
 
     WHILE pos_num        GT 0
        OR pos_num_to_add GT 0.
@@ -127,12 +129,14 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
         SUBTRACT 10 FROM digit.
         remainder = 1.
       ENDIF.
-      rv_result = digit && rv_result.
+      result = digit && result.
     ENDWHILE.
 
     IF remainder EQ 1.
-      rv_result = remainder && rv_result.
+      result = remainder && result.
     ENDIF.
+
+    rt_result = convert_string_to_array( result ).
 
   ENDMETHOD.
 
@@ -172,31 +176,33 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD constructor.
 
-    mv_number = iv_number.
+    initialize_zero( ).
 
-    SHIFT mv_number LEFT DELETING LEADING '0'.
+    DATA(lv_number) = iv_number.
 
-    IF mv_number IS INITIAL.
-      mv_number = |0|.
-    ELSEIF strlen( mv_number ) EQ 1.
-      IF mv_number CN |0123456789|.
+    SHIFT lv_number LEFT DELETING LEADING '0'.
+
+    IF lv_number IS INITIAL.
+      lv_number = |0|.
+    ELSEIF strlen( lv_number ) EQ 1.
+      IF lv_number CN |0123456789|.
         RAISE EXCEPTION TYPE zcx_no_valid_number.
       ENDIF.
     ELSE.
-      IF mv_number+0(1) CN |0123456789+-| OR
-         mv_number+1    CN |0123456789|.
+      IF lv_number+0(1) CN |0123456789+-| OR
+         lv_number+1    CN |0123456789|.
         RAISE EXCEPTION TYPE zcx_no_valid_number.
       ENDIF.
     ENDIF.
 
-    mv_sign = decide_sign( mv_number ).
+    mv_sign = decide_sign( lv_number ).
 
     " Remove sign
-    IF mv_number+0(1) CN |0123456789|.
-      SHIFT mv_number LEFT BY 1 PLACES.
+    IF lv_number+0(1) CN |0123456789|.
+      SHIFT lv_number LEFT BY 1 PLACES.
     ENDIF.
 
-    mt_digits = convert_string_to_array( mv_number ).
+    mt_digits = convert_string_to_array( lv_number ).
 
   ENDMETHOD.
 
@@ -253,6 +259,17 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->INITIALIZE_ZERO
+* +-------------------------------------------------------------------------------------------------+
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD initialize_zero.
+
+    mt_zero = VALUE #( ( 0 ) ).
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Private Method ZCL_BIG_INTEGER->REMOVE_NEGATIVE_SIGN
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IV_NUMBER                      TYPE        STRING
@@ -300,13 +317,14 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IT_DIGITS                      TYPE        TT_DIGITS
 * | [--->] IT_DIGITS_TO_SUBTRACT          TYPE        TT_DIGITS
-* | [<-()] RV_RESULT                      TYPE        STRING
+* | [<-()] RT_RESULT                      TYPE        TT_DIGITS
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD subtract_two_numbers.
 
     DATA(pos_num) = lines( it_digits ).
     DATA(pos_num_to_subtract) = lines( it_digits_to_subtract ).
     DATA(remainder) = 0.
+    DATA(result) = ||.
 
     WHILE pos_num             GT 0
        OR pos_num_to_subtract GT 0.
@@ -325,12 +343,14 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
         ADD 10 TO digit.
         remainder = 1.
       ENDIF.
-      rv_result = digit && rv_result.
+      result = digit && result.
     ENDWHILE.
 
     IF remainder = 1.
 
     ENDIF.
+
+    rt_result = convert_string_to_array( result ).
 
   ENDMETHOD.
 
@@ -341,7 +361,7 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~abs.
 
-    CHECK mv_number NE mc_zero.
+    CHECK mt_digits NE mt_zero.
     mv_sign = mc_sign_positive.
 
   ENDMETHOD.
@@ -355,50 +375,67 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
   METHOD zif_big_integer~add.
 
     " Zero will be added, nothing changes
-    IF io_number_to_add->to_string( ) = |0|.
+    IF io_number_to_add->to_array( ) = mt_zero.
       RETURN.
     ENDIF.
 
     " Number is zero, added number will be the result
-    IF mv_number = |0|.
-      mv_number = remove_negative_sign( io_number_to_add->to_string( ) ).
-      mt_digits = convert_string_to_array( mv_number ).
+    IF mt_digits = mt_zero.
+      mt_digits = io_number_to_add->to_array( ).
       mv_sign = io_number_to_add->get_sign( ).
       RETURN.
     ENDIF.
 
     " Both numbers are positive or negative
     IF mv_sign = io_number_to_add->get_sign( ).
-      mv_number = add_two_numbers( it_digits        = mt_digits
+      mt_digits = add_two_numbers( it_digits        = mt_digits
                                    it_digits_to_add = io_number_to_add->to_array( ) ).
-      mt_digits = convert_string_to_array( mv_number ).
+      RETURN.
     ENDIF.
 
     " One is positive, the other one is negative
     IF mv_sign <> io_number_to_add->get_sign( ).
 
       " Equal => zero
-      IF mv_number = remove_negative_sign( io_number_to_add->to_string( ) ).
-        mv_number = mc_zero.
-        CLEAR mt_digits.
+      IF mt_digits = io_number_to_add->to_array( ).
+        mt_digits = mt_zero.
         mv_sign = space.
         RETURN.
+      ELSEIF mv_sign = mc_sign_positive.
+        " Copy, take abs, decide which is greater and subtract
+        TRY.
+            DATA(lo_number) = zcl_big_integer_factory=>create( io_number_to_add->to_string( ) ).
+            lo_number->abs( ).
+            DATA(equal) = equals( lo_number ).
+            CASE equal.
+              WHEN 1.
+                mt_digits = subtract_two_numbers( it_digits             = mt_digits
+                                                  it_digits_to_subtract = lo_number->to_array( ) ).
+              WHEN -1.
+                mt_digits = subtract_two_numbers( it_digits             = lo_number->to_array( )
+                                                  it_digits_to_subtract = mt_digits ).
+                mv_sign = mc_sign_negative.
+            ENDCASE.
+          CATCH zcx_no_valid_number.
+        ENDTRY.
+      ELSE.
+        TRY.
+            lo_number = zcl_big_integer_factory=>create( convert_array_to_string( mt_digits ) ).
+            lo_number->abs( ).
+            equal = lo_number->equals( io_number_to_add ).
+            CASE equal.
+              WHEN 1.
+                mt_digits = subtract_two_numbers( it_digits             = lo_number->to_array( )
+                                                  it_digits_to_subtract = io_number_to_add->to_array( ) ).
+              WHEN -1.
+                mt_digits = subtract_two_numbers( it_digits             = io_number_to_add->to_array( )
+                                                  it_digits_to_subtract = lo_number->to_array( ) ).
+                mv_sign = mc_sign_positive.
+            ENDCASE.
+          CATCH zcx_no_valid_number.
+        ENDTRY.
       ENDIF.
 
-      " Decide which is greater and subtract
-      io_number_to_add->abs( ).
-      DATA(equal) = equals( io_number_to_add ).
-      CASE equal.
-        WHEN 1.
-          mv_number = subtract_two_numbers( it_digits             = mt_digits
-                                            it_digits_to_subtract = io_number_to_add->to_array( ) ).
-        WHEN -1.
-          mv_number = subtract_two_numbers( it_digits             = io_number_to_add->to_array( )
-                                            it_digits_to_subtract = mt_digits ).
-          mv_sign = mc_sign_negative.
-      ENDCASE.
-      mt_digits = convert_string_to_array( mv_number ).
-      RETURN.
     ENDIF.
 
   ENDMETHOD.
@@ -425,13 +462,13 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
     " 0 equal
     " -1 outer number is greater
 
-    IF mv_number EQ '0'.
+    IF mt_digits = mt_zero.
       " Inner number is zero, check sign of outer number
       rv_equal = SWITCH #( io_big_integer->get_sign( )
                            WHEN mc_sign_positive THEN -1
                            WHEN mc_sign_negative THEN 1
                            ELSE 0 ).
-    ELSEIF io_big_integer->to_string( ) EQ '0'.
+    ELSEIF io_big_integer->to_array( ) = mt_zero.
       " Outer number is zero, check sign of inner number
       rv_equal = SWITCH #( mv_sign
                            WHEN mc_sign_positive THEN 1
@@ -439,16 +476,15 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
     ELSEIF mv_sign EQ mc_sign_positive.
       " Inner number is positive
       rv_equal = COND #( WHEN io_big_integer->get_sign( ) EQ mc_sign_negative THEN 1
-                         WHEN strlen( io_big_integer->to_string( ) ) > strlen( mv_number ) THEN -1
-                         WHEN strlen( io_big_integer->to_string( ) ) < strlen( mv_number ) THEN 1
+                         WHEN lines( io_big_integer->to_array( ) ) > lines( mt_digits ) THEN -1
+                         WHEN lines( io_big_integer->to_array( ) ) < lines( mt_digits ) THEN 1
                          ELSE compare_equal_length_numbers( io_big_integer->to_array( ) ) ).
     ELSE.
       " Inner number is negative
       rv_equal = COND #( WHEN io_big_integer->get_sign( ) EQ mc_sign_positive THEN -1
-                         WHEN strlen( remove_negative_sign( io_big_integer->to_string( ) ) ) > strlen( mv_number ) THEN 1
-                         WHEN strlen( remove_negative_sign( io_big_integer->to_string( ) ) ) < strlen( mv_number ) THEN -1
+                         WHEN lines( io_big_integer->to_array( ) ) > lines( mt_digits ) THEN 1
+                         WHEN lines( io_big_integer->to_array( ) ) < lines( mt_digits ) THEN -1
                          ELSE reverse_equal( compare_equal_length_numbers( io_big_integer->to_array( ) ) ) ).
-      "else ). "Compare numbers with equal lengths
     ENDIF.
 
   ENDMETHOD.
@@ -483,42 +519,42 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
   METHOD zif_big_integer~subtract.
 
     " Zero will be subtracted, nothing changes
-    IF io_number_to_subtract->to_string( ) = |0|.
+    IF io_number_to_subtract->to_array( ) = mt_zero.
       RETURN.
     ENDIF.
 
-    " Number is zero, added number will be the result
-    IF mv_number = |0|.
-      mv_number = remove_negative_sign( io_number_to_subtract->to_string( ) ).
+    " Number is zero, subtracted number will be the result
+    IF mt_digits = mt_zero.
       mt_digits = io_number_to_subtract->to_array( ).
-      mv_sign = COND #( WHEN io_number_to_subtract->get_sign( ) = mc_sign_positive THEN mc_sign_negative
-                        ELSE mc_sign_positive ).
+      mv_sign = reverse_sign( mv_sign ).
       RETURN.
     ENDIF.
 
-    " Both numbers are equal => result is zero
-    IF mv_sign   = io_number_to_subtract->get_sign( ) AND
-       mv_number = remove_negative_sign( io_number_to_subtract->to_string( ) ).
-      mv_number = mc_zero.
-      CLEAR mv_sign.
+    " Both are pos or neg
+    IF mv_sign   = io_number_to_subtract->get_sign( ).
+      " Numbers are the same => zero
+      IF mt_digits = io_number_to_subtract->to_array( ).
+        mt_digits = mt_zero.
+        CLEAR mv_sign.
+        RETURN.
+      ELSE.
+
+      ENDIF.
     ENDIF.
 
-    " Both numbers are positive or negative, check which is higher and subtract lower from higher
-    IF ( mv_sign                            = mc_sign_positive   AND
-         io_number_to_subtract->get_sign( ) = mc_sign_positive ) OR
-       ( mv_sign                            = mc_sign_negative   AND
-         io_number_to_subtract->get_sign( ) = mc_sign_negative ).
-      DATA(lv_equals) = me->equals( io_number_to_subtract ).
-      CASE lv_equals.
-        WHEN 1.
-          mv_number = subtract_two_numbers( it_digits             = mt_digits
-                                            it_digits_to_subtract = io_number_to_subtract->to_array( ) ).
-        WHEN -1.
-          mv_number = subtract_two_numbers( it_digits             = io_number_to_subtract->to_array( )
-                                            it_digits_to_subtract = mt_digits ).
-          mv_sign = reverse_sign( mv_sign ).
-      ENDCASE.
-      mt_digits = convert_string_to_array( mv_number ).
+    " One is positive, the other one is negative
+    IF mv_sign <> io_number_to_subtract->get_sign( ).
+
+      " Numbers are equal, double of the original number
+      IF mt_digits = io_number_to_subtract->to_array( ).
+        mt_digits = add_two_numbers( it_digits        = mt_digits
+                                     it_digits_to_add = io_number_to_subtract->to_array( ) ).
+        RETURN.
+      ELSE.
+        mt_digits = add_two_numbers( it_digits = mt_digits
+                                     it_digits_to_add = io_number_to_subtract->to_array( ) ).
+        RETURN.
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -543,10 +579,7 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~to_string.
 
-    rv_number = mv_number.
-    IF mv_sign = mc_sign_negative.
-      rv_number = mc_sign_negative && rv_number.
-    ENDIF.
+    rv_number = convert_array_to_string( mt_digits ).
 
   ENDMETHOD.
 ENDCLASS.
