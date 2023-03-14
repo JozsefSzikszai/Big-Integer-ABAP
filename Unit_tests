@@ -1119,7 +1119,7 @@ CLASS lcl_big_integer IMPLEMENTATION.
     lo_big_integer->subtract( lo_big_integer_to_subtract ).
 
     cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
-                                        exp = |-82| ).
+                                        exp = |-72| ).
 
   ENDMETHOD.
 
@@ -1157,7 +1157,7 @@ CLASS lcl_big_integer IMPLEMENTATION.
     lo_big_integer->subtract( lo_big_integer_to_subtract ).
 
     cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
-                                        exp = |111| ).
+                                        exp = |-111| ).
 
   ENDMETHOD.
 
