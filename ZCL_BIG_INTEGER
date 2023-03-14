@@ -305,8 +305,8 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD reverse_sign.
 
-    rv_sign = COND #( WHEN mv_sign = mc_sign_positive THEN mc_sign_negative
-                      WHEN mv_sign = mc_sign_negative THEN mc_sign_positive
+    rv_sign = COND #( WHEN iv_sign = mc_sign_positive THEN mc_sign_negative
+                      WHEN iv_sign = mc_sign_negative THEN mc_sign_positive
                       ELSE || ).
 
   ENDMETHOD.
@@ -321,6 +321,7 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD subtract_two_numbers.
 
+    " it_digits_to_subtract always has to be the lower number
     DATA(pos_num) = lines( it_digits ).
     DATA(pos_num_to_subtract) = lines( it_digits_to_subtract ).
     DATA(remainder) = 0.
@@ -345,10 +346,6 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
       ENDIF.
       result = digit && result.
     ENDWHILE.
-
-    IF remainder = 1.
-
-    ENDIF.
 
     rt_result = convert_string_to_array( result ).
 
@@ -526,35 +523,56 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
     " Number is zero, subtracted number will be the result
     IF mt_digits = mt_zero.
       mt_digits = io_number_to_subtract->to_array( ).
-      mv_sign = reverse_sign( mv_sign ).
+      mv_sign = reverse_sign( io_number_to_subtract->get_sign( ) ).
       RETURN.
     ENDIF.
 
     " Both are pos or neg
-    IF mv_sign   = io_number_to_subtract->get_sign( ).
+    IF mv_sign = io_number_to_subtract->get_sign( ).
       " Numbers are the same => zero
       IF mt_digits = io_number_to_subtract->to_array( ).
         mt_digits = mt_zero.
         CLEAR mv_sign.
         RETURN.
+      ELSEIF mv_sign = mc_sign_positive.
+        " Both numbers are positive
+        DATA(equal) = equals( io_number_to_subtract ).
+        CASE equal.
+          WHEN 1.
+            mt_digits = subtract_two_numbers( it_digits             = mt_digits
+                                              it_digits_to_subtract = io_number_to_subtract->to_array( ) ).
+          WHEN -1.
+            mt_digits = subtract_two_numbers( it_digits             = io_number_to_subtract->to_array( )
+                                              it_digits_to_subtract = mt_digits ).
+            mv_sign = mc_sign_negative.
+        ENDCASE.
       ELSE.
-
+        " Both numbers are negative
+        equal = equals( io_number_to_subtract ).
+        CASE equal.
+          WHEN 1.
+            mt_digits = subtract_two_numbers( it_digits             = io_number_to_subtract->to_array( )
+                                              it_digits_to_subtract = mt_digits ).
+            mv_sign = mc_sign_positive.
+          WHEN -1.
+            mt_digits = subtract_two_numbers( it_digits             = mt_digits
+                                              it_digits_to_subtract = io_number_to_subtract->to_array( ) ).
+        ENDCASE.
       ENDIF.
+      RETURN.
     ENDIF.
 
     " One is positive, the other one is negative
     IF mv_sign <> io_number_to_subtract->get_sign( ).
-
       " Numbers are equal, double of the original number
       IF mt_digits = io_number_to_subtract->to_array( ).
         mt_digits = add_two_numbers( it_digits        = mt_digits
                                      it_digits_to_add = io_number_to_subtract->to_array( ) ).
-        RETURN.
       ELSE.
-        mt_digits = add_two_numbers( it_digits = mt_digits
+        mt_digits = add_two_numbers( it_digits        = mt_digits
                                      it_digits_to_add = io_number_to_subtract->to_array( ) ).
-        RETURN.
       ENDIF.
+      RETURN.
     ENDIF.
 
   ENDMETHOD.
