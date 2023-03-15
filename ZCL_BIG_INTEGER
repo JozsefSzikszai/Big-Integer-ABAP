@@ -505,6 +505,28 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * | [--->] IO_NUMBER_TO_MULTIPLY          TYPE REF TO ZIF_BIG_INTEGER
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~multiply.
+
+    " Number is zero => nothing changes
+    IF mt_digits = mt_zero.
+      RETURN.
+    ENDIF.
+
+    " Number to multiply with is zero => result is zero
+    IF io_number_to_multiply->to_array( ) = mt_zero.
+      mt_digits = mt_zero.
+      mv_sign = ||.
+      RETURN.
+    ENDIF.
+
+    " Adding x-1 times
+    DATA(lt_digits) = mt_digits.
+    DO ( CONV i( remove_negative_sign( io_number_to_multiply->to_string( ) ) ) - 1 ) TIMES.
+      mt_digits = add_two_numbers( it_digits        = mt_digits
+                                   it_digits_to_add = lt_digits ).
+    ENDDO.
+    mv_sign = COND #( WHEN mv_sign = io_number_to_multiply->get_sign( ) THEN mc_sign_positive
+                      ELSE mc_sign_negative ).
+
   ENDMETHOD.
 
 
