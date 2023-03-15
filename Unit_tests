@@ -93,25 +93,32 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS subtract_zero_and_zero FOR TESTING.
     METHODS subtract_zero_and_positive FOR TESTING.
     METHODS subtract_zero_and_negative FOR TESTING.
-
     METHODS subtract_positive_and_zero FOR TESTING.
     METHODS subtract_negative_and_zero FOR TESTING.
-
     METHODS subtract_pos_and_lower_pos FOR TESTING.
     METHODS subtract_pos_and_equal_pos FOR TESTING.
     METHODS subtract_pos_and_greater_pos FOR TESTING.
-
     METHODS subtract_pos_and_lower_new FOR TESTING.
     METHODS subtract_pos_and_equal_neg FOR TESTING.
     METHODS subtract_pos_and_greater_neg FOR TESTING.
-
     METHODS subtract_neg_and_lower_pos FOR TESTING.
     METHODS subtract_neg_and_equal_pos FOR TESTING.
     METHODS subtract_neg_and_greater_pos FOR TESTING.
-
     METHODS subtract_neg_and_lower_neg FOR TESTING.
     METHODS subtract_neg_and_equal_neg FOR TESTING.
     METHODS subtract_neg_and_greater_neg FOR TESTING.
+
+    " Multiply
+    METHODS multiply_zero_and_zero FOR TESTING.
+    METHODS multiply_zero_and_positive FOR TESTING.
+    METHODS multiply_zero_and_negative FOR TESTING.
+    METHODS multiply_positive_and_zero FOR TESTING.
+    METHODS multiply_negative_and_zero FOR TESTING.
+    METHODS multiply_positive_and_positive FOR TESTING.
+    METHODS multiply_positive_and_negative FOR TESTING.
+    METHODS multiply_negative_and_positive FOR TESTING.
+    METHODS multiply_negative_and_negative FOR TESTING.
+
 
 ENDCLASS.       "lcl_Big_Integer
 
@@ -1215,6 +1222,177 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
                                         exp = |13| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_zero_and_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_zero_and_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |13| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_zero_and_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |-5| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_positive_and_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |21| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_negative_and_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-95| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_positive_and_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |17| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |13| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |221| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_positive_and_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |8| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |-6| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-48| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_negative_and_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-21| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |7| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |-147| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_negative_and_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-32| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |-5| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |160| ).
 
   ENDMETHOD.
 
