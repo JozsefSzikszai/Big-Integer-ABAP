@@ -442,8 +442,20 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~DIVIDE
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IO_NUMBER_TO_DIVIDE            TYPE REF TO ZIF_BIG_INTEGER
+* | [!CX!] CX_SY_ZERODIVIDE
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~divide.
+
+    " No division by zero
+    IF io_number_to_divide->to_array( ) = mt_zero.
+      RAISE EXCEPTION TYPE cx_sy_zerodivide.
+    ENDIF.
+
+    " Zero divided by any number = zero
+    IF mt_digits = mt_zero.
+      RETURN.
+    ENDIF.
+
   ENDMETHOD.
 
 
