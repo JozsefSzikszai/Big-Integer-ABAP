@@ -32,13 +32,16 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     CLASS-METHODS: class_teardown.
     METHODS: setup.
     METHODS: teardown.
+
     " Invalid number
     METHODS constructor_invalid FOR TESTING.
     METHODS constructor_invalid_long FOR TESTING.
+
     " Sign
     METHODS sign_positive FOR TESTING.
     METHODS sign_zero FOR TESTING.
     METHODS sign_negative FOR TESTING.
+
     " Number as string
     METHODS to_string_zero FOR TESTING.
     METHODS to_string_zero_zero FOR TESTING.
@@ -48,6 +51,7 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS to_string_more_digits FOR TESTING.
     METHODS to_string_positive FOR TESTING.
     METHODS to_string_negative FOR TESTING.
+
     " Number as array
     METHODS to_array_zero FOR TESTING.
     METHODS to_array_zero_zero FOR TESTING.
@@ -57,6 +61,7 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS to_array_more_digits FOR TESTING.
     METHODS to_array_positive FOR TESTING.
     METHODS to_array_negative FOR TESTING.
+
     " Equals
     METHODS equals_zero_zero FOR TESTING.
     METHODS equals_zero_positive FOR TESTING.
@@ -70,10 +75,12 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS equals_negative_to_lower_neg FOR TESTING.
     METHODS equals_negative_to_greater_neg FOR TESTING.
     METHODS equals_negative_to_positive FOR TESTING.
+
     " Absolute value
     METHODS abs_positive FOR TESTING.
     METHODS abs_zero FOR TESTING.
     METHODS abs_negative FOR TESTING.
+
     " Add
     METHODS add_zero_and_zero FOR TESTING.
     METHODS add_zero_and_positive FOR TESTING.
@@ -119,6 +126,10 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS multiply_negative_and_positive FOR TESTING.
     METHODS multiply_negative_and_negative FOR TESTING.
 
+    " Divide
+    METHODS divide_by_zero FOR TESTING.
+    METHODS divide_zero_by_positive FOR TESTING.
+    METHODS divide_zero_by_negative FOR TESTING.
 
 ENDCLASS.       "lcl_Big_Integer
 
@@ -1393,6 +1404,64 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
                                         exp = |160| ).
+
+  ENDMETHOD.
+
+  METHOD divide_by_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |5| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        lo_big_integer->divide( lo_big_integer_to_divide ).
+      CATCH cx_sy_zerodivide.
+        cl_abap_unit_assert=>assert_true( act = abap_true ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD divide_zero_by_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |78| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD divide_zero_by_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |-16| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+                                        exp = |0| ).
 
   ENDMETHOD.
 
