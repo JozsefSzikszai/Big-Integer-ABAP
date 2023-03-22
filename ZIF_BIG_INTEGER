@@ -1,14 +1,25 @@
 INTERFACE zif_big_integer
   PUBLIC .
+
+
   TYPES:
     tt_digits TYPE STANDARD TABLE OF i WITH DEFAULT KEY .
-  METHODS abs .
+
+  METHODS abs
+    RETURNING
+      VALUE(ro_big_integer) TYPE REF TO zif_big_integer .
   METHODS add
     IMPORTING
-      !io_number_to_add TYPE REF TO zif_big_integer .
+      !io_number_to_add     TYPE REF TO zif_big_integer
+    RETURNING
+      VALUE(ro_big_integer) TYPE REF TO zif_big_integer .
   METHODS divide
     IMPORTING
-      !io_number_to_divide TYPE REF TO zif_big_integer .
+      !io_number_to_divide  TYPE REF TO zif_big_integer
+    RETURNING
+      VALUE(ro_big_integer) TYPE REF TO zif_big_integer
+    RAISING
+      cx_sy_zerodivide .
   METHODS equals
     IMPORTING
       !io_big_integer TYPE REF TO zif_big_integer
@@ -19,10 +30,14 @@ INTERFACE zif_big_integer
       VALUE(rv_sign) TYPE char01 .
   METHODS multiply
     IMPORTING
-      !io_number_to_multiply TYPE REF TO zif_big_integer .
+      !io_number_to_multiply TYPE REF TO zif_big_integer
+    RETURNING
+      VALUE(ro_big_integer)  TYPE REF TO zif_big_integer .
   METHODS subtract
     IMPORTING
-      !io_number_to_subtract TYPE REF TO zif_big_integer .
+      !io_number_to_subtract TYPE REF TO zif_big_integer
+    RETURNING
+      VALUE(ro_big_integer)  TYPE REF TO zif_big_integer .
   METHODS to_array
     RETURNING
       VALUE(rt_digits) TYPE tt_digits .
