@@ -121,6 +121,10 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS multiply_zero_and_negative FOR TESTING.
     METHODS multiply_positive_and_zero FOR TESTING.
     METHODS multiply_negative_and_zero FOR TESTING.
+    METHODS multiply_one_and_positive FOR TESTING.
+    METHODS multiply_one_and_negative FOR TESTING.
+    METHODS multiply_positive_and_one FOR TESTING.
+    METHODS multiply_negative_and_one FOR TESTING.
     METHODS multiply_positive_and_positive FOR TESTING.
     METHODS multiply_positive_and_negative FOR TESTING.
     METHODS multiply_negative_and_positive FOR TESTING.
@@ -631,9 +635,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->abs( ).
+    DATA(lo_result) = lo_big_integer->abs( ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->get_sign( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->get_sign( )
                                         exp = |+| ).
 
   ENDMETHOD.
@@ -645,9 +649,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->abs( ).
+    DATA(lo_result) = lo_big_integer->abs( ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->get_sign( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->get_sign( )
                                         exp = || ).
 
   ENDMETHOD.
@@ -659,9 +663,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->abs( ).
+    DATA(lo_result) = lo_big_integer->abs( ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->get_sign( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->get_sign( )
                                         exp = |+| ).
 
   ENDMETHOD.
@@ -678,9 +682,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |0| ).
 
   ENDMETHOD.
@@ -697,9 +701,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |85| ).
 
   ENDMETHOD.
@@ -716,9 +720,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |-35| ).
 
   ENDMETHOD.
@@ -735,9 +739,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |75| ).
 
   ENDMETHOD.
@@ -754,9 +758,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |-11| ).
 
   ENDMETHOD.
@@ -773,9 +777,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |62| ).
 
   ENDMETHOD.
@@ -792,9 +796,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |37| ).
 
   ENDMETHOD.
@@ -811,9 +815,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |0| ).
 
   ENDMETHOD.
@@ -830,9 +834,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |-44| ).
 
   ENDMETHOD.
@@ -849,9 +853,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |-131| ).
 
   ENDMETHOD.
@@ -868,9 +872,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |-25| ).
 
   ENDMETHOD.
@@ -887,9 +891,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |0| ).
 
   ENDMETHOD.
@@ -906,9 +910,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->add( lo_big_integer_to_add ).
+    DATA(lo_result) = lo_big_integer->add( lo_big_integer_to_add ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |18| ).
 
   ENDMETHOD.
@@ -1248,9 +1252,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |0| ).
 
   ENDMETHOD.
@@ -1267,9 +1271,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |0| ).
 
   ENDMETHOD.
@@ -1286,9 +1290,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |0| ).
 
   ENDMETHOD.
@@ -1305,9 +1309,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |0| ).
 
   ENDMETHOD.
@@ -1324,10 +1328,86 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_one_and_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |1| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |47| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |47| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_one_and_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |1| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |-8| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |-8| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_positive_and_one.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |52| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |1| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |52| ).
+
+  ENDMETHOD.
+
+  METHOD multiply_negative_and_one.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-27| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_multiply) = zcl_big_integer_factory=>create( |1| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |-27| ).
 
   ENDMETHOD.
 
@@ -1343,9 +1423,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |221| ).
 
   ENDMETHOD.
@@ -1362,9 +1442,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |-48| ).
 
   ENDMETHOD.
@@ -1381,9 +1461,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |-147| ).
 
   ENDMETHOD.
@@ -1400,9 +1480,9 @@ CLASS lcl_big_integer IMPLEMENTATION.
       CATCH zcx_no_valid_number.
     ENDTRY.
 
-    lo_big_integer->multiply( lo_big_integer_to_multiply ).
+    DATA(lo_result) = lo_big_integer->multiply( lo_big_integer_to_multiply ).
 
-    cl_abap_unit_assert=>assert_equals( act = lo_big_integer->to_string( )
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |160| ).
 
   ENDMETHOD.
