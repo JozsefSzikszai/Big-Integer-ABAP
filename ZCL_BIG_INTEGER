@@ -86,11 +86,6 @@ private section.
       !IV_EQUALS type I
     returning
       value(RV_EQUALS) type I .
-  methods REVERSE_SIGN
-    importing
-      !IV_SIGN type CHAR01
-    returning
-      value(RV_SIGN) type CHAR01 .
   methods SUBTRACT_TWO_NUMBERS
     importing
       !IT_DIGITS type TT_DIGITS
@@ -316,21 +311,6 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Private Method ZCL_BIG_INTEGER->REVERSE_SIGN
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] IV_SIGN                        TYPE        CHAR01
-* | [<-()] RV_SIGN                        TYPE        CHAR01
-* +--------------------------------------------------------------------------------------</SIGNATURE>
-  METHOD reverse_sign.
-
-    rv_sign = COND #( WHEN iv_sign = mc_sign_positive THEN mc_sign_negative
-                      WHEN iv_sign = mc_sign_negative THEN mc_sign_positive
-                      ELSE || ).
-
-  ENDMETHOD.
-
-
-* <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Private Method ZCL_BIG_INTEGER->SUBTRACT_TWO_NUMBERS
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IT_DIGITS                      TYPE        TT_DIGITS
@@ -465,15 +445,20 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD zif_big_integer~divide.
 
+    DATA result TYPE string.
+
     " No division by zero
     IF io_number_to_divide->to_array( ) = mt_zero.
       RAISE EXCEPTION TYPE cx_sy_zerodivide.
+    ELSEIF mt_digits = mt_zero.
+      " Zero divided by any number = zero
+      result = |0|.
     ENDIF.
 
-    " Zero divided by any number = zero
-    IF mt_digits = mt_zero.
-      RETURN.
-    ENDIF.
+    TRY.
+        ro_big_integer = zcl_big_integer_factory=>create( result ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -584,9 +569,14 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
       result = to_string( ).
     ELSEIF mt_digits = mt_zero.
       " Number is zero, subtracted number will be the result with reversed sign
-      "result = reverse_sign( io_number_to_subtract->to_string( ) ).
+      result = io_number_to_subtract->to_string( ).
+      IF result+0(1) = mc_sign_negative.
+        SHIFT result LEFT BY 1 PLACES.
+      ELSE.
+        result = mc_sign_negative && result.
+      ENDIF.
     ELSE.
-      " Both are pos or neg
+      " None of the numbers is zero
       IF mv_sign = io_number_to_subtract->get_sign( ).
         " Numbers are the same => result is zero
         result = mc_zero.
