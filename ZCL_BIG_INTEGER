@@ -525,7 +525,7 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
     DATA result TYPE string.
 
-    IF mt_digits = mt_zero OR
+    IF mt_digits                          = mt_zero OR
        io_number_to_multiply->to_array( ) = mt_zero.
       " One of the numbers is zero => result is zero
       result = mc_zero.
@@ -540,7 +540,7 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
       " Adding x-1 times
       result = remove_negative_sign( to_string( ) ).
       DO ( CONV i( remove_negative_sign( io_number_to_multiply->to_string( ) ) ) - 1 ) TIMES.
-        result = add_two_numbers( it_digits = mt_digits
+        result = add_two_numbers( it_digits        = mt_digits
                                   it_digits_to_add = convert_string_to_array( result ) ).
       ENDDO.
       IF mv_sign NE io_number_to_multiply->get_sign( ).
@@ -567,6 +567,7 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
     IF io_number_to_subtract->to_array( ) = mt_zero.
       " Zero will be subtracted, nothing changes
       result = to_string( ).
+
     ELSEIF mt_digits = mt_zero.
       " Number is zero, subtracted number will be the result with reversed sign
       result = io_number_to_subtract->to_string( ).
@@ -575,56 +576,44 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
       ELSE.
         result = mc_sign_negative && result.
       ENDIF.
+
     ELSE.
       " None of the numbers is zero
-      IF mv_sign = io_number_to_subtract->get_sign( ).
+      IF to_string( ) = io_number_to_subtract->to_string( ).
         " Numbers are the same => result is zero
         result = mc_zero.
-      ELSEIF mv_sign = mc_sign_positive.
 
+      ELSEIF mv_sign = mc_sign_positive.
+        " First nunmber is positive
+        IF io_number_to_subtract->get_sign( ) = mc_sign_negative.
+          " x - (-y) => x + y
+          result = add_two_numbers( it_digits = mt_digits
+                                    it_digits_to_add = io_number_to_subtract->to_array( ) ).
+        ELSE.
+          " Both are pos, decide which is greater and subtract
+          DATA(equal) = equals( io_number_to_subtract ).
+          CASE equal.
+            WHEN 1.
+              result = subtract_two_numbers( it_digits             = mt_digits
+                                             it_digits_to_subtract = io_number_to_subtract->to_array( ) ).
+            WHEN -1.
+              result = subtract_two_numbers( it_digits             = io_number_to_subtract->to_array( )
+                                             it_digits_to_subtract = mt_digits ).
+              result = mc_sign_negative && result.
+          ENDCASE.
+        ENDIF.
+      ELSE.
+        " Number is negative
+        IF io_number_to_subtract->get_sign( ) = mc_sign_positive.
+          " Both are negative, add and make it negative
+          result = add_two_numbers( it_digits = mt_digits
+                                    it_digits_to_add = io_number_to_subtract->to_array( ) ).
+          result = mc_sign_negative && result.
+        ELSE.
+          " One is neg, other is pos, shallow copy, decide which is greater and subtract
+        ENDIF.
       ENDIF.
     ENDIF.
-
-*      ELSEIF mv_sign = mc_sign_positive.
-*        " Both numbers are positive
-*        DATA(equal) = equals( io_number_to_subtract ).
-*        CASE equal.
-*          WHEN 1.
-**            mt_digits = subtract_two_numbers( it_digits             = mt_digits
-**                                              it_digits_to_subtract = io_number_to_subtract->to_array( ) ).
-*          WHEN -1.
-**            mt_digits = subtract_two_numbers( it_digits             = io_number_to_subtract->to_array( )
-**                                              it_digits_to_subtract = mt_digits ).
-*            mv_sign = mc_sign_negative.
-*        ENDCASE.
-*      ELSE.
-*        " Both numbers are negative
-*        equal = equals( io_number_to_subtract ).
-*        CASE equal.
-*          WHEN 1.
-**            mt_digits = subtract_two_numbers( it_digits             = io_number_to_subtract->to_array( )
-**                                              it_digits_to_subtract = mt_digits ).
-*            mv_sign = mc_sign_positive.
-*          WHEN -1.
-**            mt_digits = subtract_two_numbers( it_digits             = mt_digits
-**                                              it_digits_to_subtract = io_number_to_subtract->to_array( ) ).
-*        ENDCASE.
-*      ENDIF.
-*      RETURN.
-*    ENDIF.
-
-*    " One is positive, the other one is negative
-*    IF mv_sign <> io_number_to_subtract->get_sign( ).
-*      " Numbers are equal, double of the original number
-*      IF mt_digits = io_number_to_subtract->to_array( ).
-**        mt_digits = add_two_numbers( it_digits        = mt_digits
-**                                     it_digits_to_add = io_number_to_subtract->to_array( ) ).
-*      ELSE.
-**        mt_digits = add_two_numbers( it_digits        = mt_digits
-**                                     it_digits_to_add = io_number_to_subtract->to_array( ) ).
-*      ENDIF.
-*      RETURN.
-*    ENDIF.
 
     ro_big_integer = create_big_integer( result ).
 
