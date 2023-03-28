@@ -450,9 +450,28 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
     " No division by zero
     IF io_number_to_divide->to_array( ) = mt_zero.
       RAISE EXCEPTION TYPE cx_sy_zerodivide.
+
     ELSEIF mt_digits = mt_zero.
       " Zero divided by any number = zero
       result = |0|.
+
+    ELSE.
+      IF mt_digits = io_number_to_divide->to_array( ).
+        " Numbers are the same => result is zero
+        result = |1|.
+        IF mv_sign <> io_number_to_divide->get_sign( ).
+          result = mc_sign_negative && result.
+        ENDIF.
+      ELSE.
+        " Check which is greater
+        DATA(equal) = equals( io_number_to_divide ).
+        CASE equal.
+          WHEN -1.
+            result = mc_zero.
+          WHEN 1.
+
+        ENDCASE.
+      ENDIF.
     ENDIF.
 
     TRY.
@@ -586,7 +605,7 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
       ELSEIF mv_sign = mc_sign_positive.
         " First nunmber is positive
         IF io_number_to_subtract->get_sign( ) = mc_sign_negative.
-          " x - (-y) => x + y
+          " positive minus negative => add
           result = add_two_numbers( it_digits = mt_digits
                                     it_digits_to_add = io_number_to_subtract->to_array( ) ).
         ELSE.
@@ -605,12 +624,22 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
       ELSE.
         " Number is negative
         IF io_number_to_subtract->get_sign( ) = mc_sign_positive.
-          " Both are negative, add and make it negative
+          " Negative minus positive => add and make negative
           result = add_two_numbers( it_digits = mt_digits
                                     it_digits_to_add = io_number_to_subtract->to_array( ) ).
           result = mc_sign_negative && result.
         ELSE.
-          " One is neg, other is pos, shallow copy, decide which is greater and subtract
+          " Negative minus negative => decide which is greater
+          equal = equals( io_number_to_subtract ).
+          CASE equal.
+            WHEN 1.
+              result = subtract_two_numbers( it_digits             = io_number_to_subtract->to_array( )
+                                             it_digits_to_subtract = mt_digits ).
+            WHEN -1.
+              result = subtract_two_numbers( it_digits             = mt_digits
+                                             it_digits_to_subtract = io_number_to_subtract->to_array( ) ).
+              result = mc_sign_negative && result.
+          ENDCASE.
         ENDIF.
       ENDIF.
     ENDIF.
