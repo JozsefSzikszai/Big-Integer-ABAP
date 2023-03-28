@@ -134,6 +134,18 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS divide_by_zero FOR TESTING.
     METHODS divide_zero_by_positive FOR TESTING.
     METHODS divide_zero_by_negative FOR TESTING.
+    METHODS divide_positive_by_equal_pos FOR TESTING.
+    METHODS divide_positive_by_equal_neg FOR TESTING.
+    METHODS divide_negative_by_equal_pos FOR TESTING.
+    METHODS divide_negative_by_equal_neg FOR TESTING.
+    METHODS divide_pos_by_lower_pos FOR TESTING.
+    METHODS divide_pos_by_lower_neg FOR TESTING.
+    METHODS divide_neg_by_lower_pos FOR TESTING.
+    METHODS divide_neg_by_lower_neg FOR TESTING.
+    METHODS divide_pos_by_greater_pos FOR TESTING.
+    METHODS divide_pos_by_greater_neg FOR TESTING.
+    METHODS divide_neg_by_greater_pos FOR TESTING.
+    METHODS divide_neg_by_greater_neg FOR TESTING.
 
 ENDCLASS.       "lcl_Big_Integer
 
@@ -1535,6 +1547,234 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
     TRY.
         DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |-16| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD divide_positive_by_equal_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |21| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |21| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |1| ).
+
+  ENDMETHOD.
+
+  METHOD divide_positive_by_equal_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |34| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |-34| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |-1| ).
+
+  ENDMETHOD.
+
+  METHOD divide_negative_by_equal_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-9| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |9| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |-1| ).
+
+  ENDMETHOD.
+
+  METHOD divide_negative_by_equal_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-125| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |-125| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |1| ).
+
+  ENDMETHOD.
+
+  METHOD divide_pos_by_lower_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |16| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |4| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |4| ).
+
+  ENDMETHOD.
+
+  METHOD divide_pos_by_lower_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |20| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |-2| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |10| ).
+
+  ENDMETHOD.
+
+  METHOD divide_neg_by_lower_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-36| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |6| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |6| ).
+
+  ENDMETHOD.
+
+  METHOD divide_neg_by_lower_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-63| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |-9| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |7| ).
+
+  ENDMETHOD.
+
+  METHOD divide_pos_by_greater_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |55| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |61| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD divide_pos_by_greater_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |81| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |-101| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD divide_neg_by_greater_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-25| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |35| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD divide_neg_by_greater_neg.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |-52| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |-84| ).
       CATCH zcx_no_valid_number.
     ENDTRY.
 
