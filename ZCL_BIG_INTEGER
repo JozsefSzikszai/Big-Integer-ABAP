@@ -447,8 +447,8 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
     DATA result TYPE string.
 
-    " No division by zero
     IF io_number_to_divide->to_array( ) = mt_zero.
+      " No division by zero
       RAISE EXCEPTION TYPE cx_sy_zerodivide.
 
     ELSEIF mt_digits = mt_zero.
@@ -457,19 +457,36 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
     ELSE.
       IF mt_digits = io_number_to_divide->to_array( ).
-        " Numbers are the same => result is zero
+        " Numbers are the same => result is one
         result = |1|.
         IF mv_sign <> io_number_to_divide->get_sign( ).
           result = mc_sign_negative && result.
         ENDIF.
       ELSE.
-        " Check which is greater
-        DATA(equal) = equals( io_number_to_divide ).
+        " Check which is greater in abs value
+        DATA(lo_number) = abs( ).
+        DATA(lo_number_to_divide) = io_number_to_divide->abs( ).
+        DATA(equal) = lo_number->equals( lo_number_to_divide ).
         CASE equal.
           WHEN -1.
             result = mc_zero.
           WHEN 1.
-
+            DATA(counter) = 0.
+            WHILE lo_number->equals( zcl_big_integer_factory=>create( mc_zero ) ) EQ 1.
+              DATA(number) = subtract_two_numbers( it_digits             = lo_number->to_array( )
+                                                   it_digits_to_subtract = lo_number_to_divide->to_array( ) ).
+              TRY.
+                  lo_number = zcl_big_integer_factory=>create( number ).
+                CATCH zcx_no_valid_number.
+              ENDTRY.
+              "counter = counter + 1.
+              result = result + 1.
+            ENDWHILE.
+            "result = counter.
+            CONDENSE result NO-GAPS.
+            IF get_sign( ) <> io_number_to_divide->get_sign( ).
+              result = mc_sign_negative && result.
+            ENDIF.
         ENDCASE.
       ENDIF.
     ENDIF.
