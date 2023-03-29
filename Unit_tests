@@ -1667,7 +1667,7 @@ CLASS lcl_big_integer IMPLEMENTATION.
     DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
 
     cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
-                                        exp = |10| ).
+                                        exp = |-10| ).
 
   ENDMETHOD.
 
@@ -1686,7 +1686,7 @@ CLASS lcl_big_integer IMPLEMENTATION.
     DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
 
     cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
-                                        exp = |6| ).
+                                        exp = |-6| ).
 
   ENDMETHOD.
 
