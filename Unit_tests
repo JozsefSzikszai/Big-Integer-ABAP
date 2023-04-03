@@ -147,6 +147,11 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS divide_neg_by_greater_pos FOR TESTING.
     METHODS divide_neg_by_greater_neg FOR TESTING.
 
+    " Remainder
+    METHODS rem_div_by_zero FOR TESTING.
+    METHODS rem_div_zero_by_positive FOR TESTING.
+    METHODS rem_div_zero_by_negative FOR TESTING.
+
 ENDCLASS.       "lcl_Big_Integer
 
 
@@ -1779,6 +1784,65 @@ CLASS lcl_big_integer IMPLEMENTATION.
     ENDTRY.
 
     DATA(lo_result) = lo_big_integer->divide( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD rem_div_by_zero.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |5| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_result) = lo_big_integer->remainder( lo_big_integer_to_divide ).
+      CATCH cx_sy_zerodivide.
+        cl_abap_unit_assert=>assert_true( act = abap_true ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD rem_div_zero_by_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |78| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->remainder( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |0| ).
+
+
+  ENDMETHOD.
+
+  METHOD rem_div_zero_by_negative.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |0| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |-16| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->remainder( lo_big_integer_to_divide ).
 
     cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |0| ).
