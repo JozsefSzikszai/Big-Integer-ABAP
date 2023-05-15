@@ -151,6 +151,7 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS rem_div_by_zero FOR TESTING.
     METHODS rem_div_zero_by_positive FOR TESTING.
     METHODS rem_div_zero_by_negative FOR TESTING.
+    METHODS rem_div_positive_by_positive FOR TESTING.
 
 ENDCLASS.       "lcl_Big_Integer
 
@@ -1846,6 +1847,25 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD rem_div_positive_by_positive.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |5| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |3| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->remainder( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |2| ).
 
   ENDMETHOD.
 
