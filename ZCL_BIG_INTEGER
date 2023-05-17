@@ -19,6 +19,8 @@ CLASS zcl_big_integer DEFINITION
       FOR zif_big_integer~get_sign .
     ALIASES multiply
       FOR zif_big_integer~multiply .
+    ALIASES remainder
+      FOR zif_big_integer~remainder .
     ALIASES subtract
       FOR zif_big_integer~subtract .
     ALIASES to_array
@@ -37,66 +39,66 @@ CLASS zcl_big_integer DEFINITION
       RAISING
         zcx_no_valid_number .
   PROTECTED SECTION.
-private section.
+  PRIVATE SECTION.
 
-  constants MC_ZERO type STRING value '0' ##NO_TEXT.
-  data MT_DIGITS type TT_DIGITS .
-  data MT_ZERO type TT_DIGITS .
-  data MV_SIGN type CHAR01 .
+    CONSTANTS mc_zero TYPE string VALUE '0' ##NO_TEXT.
+    DATA mt_digits TYPE tt_digits .
+    DATA mt_zero TYPE tt_digits .
+    DATA mv_sign TYPE char01 .
 
-  methods ADD_TWO_NUMBERS
-    importing
-      !IT_DIGITS type TT_DIGITS
-      !IT_DIGITS_TO_ADD type TT_DIGITS
-    returning
-      value(RV_RESULT) type STRING .
-  methods COMPARE_EQUAL_LENGTH_NUMBERS
-    importing
-      !IT_DIGITS_TO_COMPARE type TT_DIGITS
-    returning
-      value(RV_EQUALS) type I .
-  methods CONVERT_ARRAY_TO_STRING
-    importing
-      !IT_NUMBER type TT_DIGITS
-    returning
-      value(RV_NUMBER) type STRING .
-  methods CONVERT_STRING_TO_ARRAY
-    importing
-      !IV_NUMBER type STRING
-    returning
-      value(RT_NUMBER) type TT_DIGITS .
-  methods CREATE_BIG_INTEGER
-    importing
-      !IV_NUMBER type STRING
-    returning
-      value(RO_BIG_INTEGER) type ref to ZIF_BIG_INTEGER .
-  methods DECIDE_SIGN
-    importing
-      !IV_NUMBER type STRING
-    returning
-      value(RV_SIGN) type CHAR01 .
-  methods INITIALIZE_ZERO .
-  methods REMOVE_NEGATIVE_SIGN
-    importing
-      !IV_NUMBER type STRING
-    returning
-      value(RV_NUMBER) type STRING .
-  methods REVERSE_EQUAL
-    importing
-      !IV_EQUALS type I
-    returning
-      value(RV_EQUALS) type I .
-  methods SUBTRACT_TWO_NUMBERS
-    importing
-      !IT_DIGITS type TT_DIGITS
-      !IT_DIGITS_TO_SUBTRACT type TT_DIGITS
-    returning
-      value(RV_RESULT) type STRING .
+    METHODS add_two_numbers
+      IMPORTING
+        !it_digits        TYPE tt_digits
+        !it_digits_to_add TYPE tt_digits
+      RETURNING
+        VALUE(rv_result)  TYPE string .
+    METHODS compare_equal_length_numbers
+      IMPORTING
+        !it_digits_to_compare TYPE tt_digits
+      RETURNING
+        VALUE(rv_equals)      TYPE i .
+    METHODS convert_array_to_string
+      IMPORTING
+        !it_number       TYPE tt_digits
+      RETURNING
+        VALUE(rv_number) TYPE string .
+    METHODS convert_string_to_array
+      IMPORTING
+        !iv_number       TYPE string
+      RETURNING
+        VALUE(rt_number) TYPE tt_digits .
+    METHODS create_big_integer
+      IMPORTING
+        !iv_number            TYPE string
+      RETURNING
+        VALUE(ro_big_integer) TYPE REF TO zif_big_integer .
+    METHODS decide_sign
+      IMPORTING
+        !iv_number     TYPE string
+      RETURNING
+        VALUE(rv_sign) TYPE char01 .
+    METHODS initialize_zero .
+    METHODS remove_negative_sign
+      IMPORTING
+        !iv_number       TYPE string
+      RETURNING
+        VALUE(rv_number) TYPE string .
+    METHODS reverse_equal
+      IMPORTING
+        !iv_equals       TYPE i
+      RETURNING
+        VALUE(rv_equals) TYPE i .
+    METHODS subtract_two_numbers
+      IMPORTING
+        !it_digits             TYPE tt_digits
+        !it_digits_to_subtract TYPE tt_digits
+      RETURNING
+        VALUE(rv_result)       TYPE string .
 ENDCLASS.
 
 
 
-CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
+CLASS zcl_big_integer IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
@@ -472,17 +474,18 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
             result = mc_zero.
           WHEN 1.
             DATA(counter) = 0.
-            WHILE lo_number->equals( zcl_big_integer_factory=>create( mc_zero ) ) EQ 1.
-              DATA(number) = subtract_two_numbers( it_digits             = lo_number->to_array( )
-                                                   it_digits_to_subtract = lo_number_to_divide->to_array( ) ).
-              TRY.
-                  lo_number = zcl_big_integer_factory=>create( number ).
-                CATCH zcx_no_valid_number.
-              ENDTRY.
-              "counter = counter + 1.
-              result = result + 1.
-            ENDWHILE.
-            "result = counter.
+            TRY.
+                WHILE lo_number->equals( zcl_big_integer_factory=>create( mc_zero ) ) EQ 1.
+                  DATA(number) = subtract_two_numbers( it_digits             = lo_number->to_array( )
+                                                       it_digits_to_subtract = lo_number_to_divide->to_array( ) ).
+                  TRY.
+                      lo_number = zcl_big_integer_factory=>create( number ).
+                    CATCH zcx_no_valid_number.
+                  ENDTRY.
+                  result = result + 1.
+                ENDWHILE.
+              CATCH zcx_no_valid_number.
+            ENDTRY.
             CONDENSE result NO-GAPS.
             IF get_sign( ) <> io_number_to_divide->get_sign( ).
               result = mc_sign_negative && result.
@@ -583,6 +586,43 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
         result = mc_sign_negative && result.
       ENDIF.
 
+    ENDIF.
+
+    ro_big_integer = create_big_integer( result ).
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_BIG_INTEGER->ZIF_BIG_INTEGER~REMAINDER
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IO_NUMBER_TO_DIVIDE            TYPE REF TO ZIF_BIG_INTEGER
+* | [<-()] RO_BIG_INTEGER                 TYPE REF TO ZIF_BIG_INTEGER
+* | [!CX!] CX_SY_ZERODIVIDE
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD zif_big_integer~remainder.
+
+    DATA result TYPE string.
+
+    IF io_number_to_divide->to_string( ) = mc_zero.
+      " No division by zero
+      RAISE EXCEPTION TYPE cx_sy_zerodivide.
+    ENDIF.
+
+    IF mt_digits = mt_zero.
+      result = mc_zero.
+    ELSE.
+      IF mv_sign                          = mc_sign_positive AND
+         io_number_to_divide->get_sign( ) = mc_sign_positive.
+        TRY.
+            DATA(lo_number) = zcl_big_integer_factory=>create( to_string( ) ).
+          CATCH zcx_no_valid_number.
+        ENDTRY.
+        WHILE lo_number->equals( io_number_to_divide ) >= 0.
+          lo_number = lo_number->subtract( io_number_to_divide ).
+        ENDWHILE.
+        result = lo_number->to_string( ).
+      ENDIF.
     ENDIF.
 
     ro_big_integer = create_big_integer( result ).
