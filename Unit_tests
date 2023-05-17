@@ -151,7 +151,10 @@ CLASS lcl_big_integer DEFINITION FOR TESTING
     METHODS rem_div_by_zero FOR TESTING.
     METHODS rem_div_zero_by_positive FOR TESTING.
     METHODS rem_div_zero_by_negative FOR TESTING.
-    METHODS rem_div_positive_by_positive FOR TESTING.
+    METHODS rem_div_pos_by_lower_pos FOR TESTING.
+    METHODS rem_div_pos_by_pos_equal_pos FOR TESTING.
+    METHODS rem_div_pos_by_greater_pos FOR TESTING.
+    METHODS rem_div_pos_by_greater_pos2 FOR TESTING.
 
 ENDCLASS.       "lcl_Big_Integer
 
@@ -1850,7 +1853,45 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD rem_div_positive_by_positive.
+  METHOD rem_div_pos_by_lower_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |7| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |9| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->remainder( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |7| ).
+
+  ENDMETHOD.
+
+  METHOD rem_div_pos_by_pos_equal_pos.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |5| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |5| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->remainder( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |0| ).
+
+  ENDMETHOD.
+
+  METHOD rem_div_pos_by_greater_pos.
 
     TRY.
         DATA(lo_big_integer) = zcl_big_integer_factory=>create( |5| ).
@@ -1866,6 +1907,26 @@ CLASS lcl_big_integer IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
                                         exp = |2| ).
+
+
+  ENDMETHOD.
+
+  METHOD rem_div_pos_by_greater_pos2.
+
+    TRY.
+        DATA(lo_big_integer) = zcl_big_integer_factory=>create( |15| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_big_integer_to_divide) = zcl_big_integer_factory=>create( |3| ).
+      CATCH zcx_no_valid_number.
+    ENDTRY.
+
+    DATA(lo_result) = lo_big_integer->remainder( lo_big_integer_to_divide ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_result->to_string( )
+                                        exp = |0| ).
 
   ENDMETHOD.
 
