@@ -98,7 +98,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_big_integer IMPLEMENTATION.
+CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
