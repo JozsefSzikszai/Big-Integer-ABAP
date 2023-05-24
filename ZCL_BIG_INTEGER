@@ -512,7 +512,7 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
     " 1 inner number is greater
     " 0 equal
-    " -1 outer number is greater
+    " -1 outer number (io_big_integer) is greater
 
     IF mt_digits = mt_zero.
       " Inner number is zero, check sign of outer number
