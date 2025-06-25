@@ -13,7 +13,9 @@ CLASS zcl_big_integer DEFINITION
         VALUE(ro_result) TYPE REF TO zcl_big_integer .
     METHODS constructor
       IMPORTING
-        !iv_number TYPE string .
+        !iv_number TYPE string
+      RAISING
+        zcx_invalid_number .
     METHODS divide
       IMPORTING
         !io_bi_to_divide TYPE REF TO zcl_big_integer
@@ -77,7 +79,9 @@ CLASS zcl_big_integer DEFINITION
       IMPORTING
         !iv_number       TYPE string
       RETURNING
-        VALUE(rv_number) TYPE string .
+        VALUE(rv_number) TYPE string
+      RAISING
+        zcx_invalid_number .
     METHODS compare_numbers
       IMPORTING
         !it_digits            TYPE tt_digits
@@ -100,7 +104,6 @@ CLASS zcl_big_integer DEFINITION
         !it_digits       TYPE tt_digits
       RETURNING
         VALUE(rv_number) TYPE string .
-    METHODS determine_sign .
     METHODS divide_two_numbers
       IMPORTING
         !it_digits           TYPE tt_digits
@@ -112,6 +115,12 @@ CLASS zcl_big_integer DEFINITION
         !it_digits       TYPE tt_digits
       RETURNING
         VALUE(rt_result) TYPE tt_digits .
+    METHODS multiply_two_numbers
+      IMPORTING
+        !it_digits             TYPE tt_digits
+        !it_digits_to_multiply TYPE tt_digits
+      RETURNING
+        VALUE(rt_result)       TYPE tt_digits .
     METHODS subtract_two_numbers
       IMPORTING
         !it_digits             TYPE tt_digits
@@ -124,6 +133,11 @@ CLASS zcl_big_integer DEFINITION
         !it_digits_to_add TYPE tt_digits
       RETURNING
         VALUE(rt_result)  TYPE tt_digits .
+    METHODS trim_number
+      IMPORTING
+        !iv_number       TYPE string
+      RETURNING
+        VALUE(rv_number) TYPE string .
 ENDCLASS.
 
 
@@ -182,42 +196,65 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IV_NUMBER                      TYPE        STRING
 * | [<-()] RV_NUMBER                      TYPE        STRING
+* | [!CX!] ZCX_INVALID_NUMBER
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD cleanup_number.
 
-    rv_number = iv_number.
+    rv_number = trim_number( iv_number ).
 
     " Empty string is taken as zero
     IF rv_number IS INITIAL.
-      rv_number = |0|.
+      rv_number = mc_zero.
       RETURN.
+    ENDIF.
+
+    " Zero, nothing to do
+    IF rv_number EQ mc_zero.
+      RETURN.
+    ENDIF.
+
+    " Single digit
+    IF strlen( rv_number ) EQ 1.
+      IF rv_number CO '123456789'.
+        mv_sign = mc_sign_positive.
+        RETURN.
+      ELSE.
+        RAISE EXCEPTION TYPE zcx_invalid_number.
+      ENDIF.
+    ENDIF.
+
+    " First position: sign or a digit
+    IF rv_number(1) CN '0123456789-+'.
+      RAISE EXCEPTION TYPE zcx_invalid_number.
+    ENDIF.
+
+    " From second position: digits only
+    IF rv_number+1 CN '0123456789'.
+      RAISE EXCEPTION TYPE zcx_invalid_number.
     ENDIF.
 
     " Check negative sign, only first position counts
     IF rv_number(1) = mc_sign_negative.
-      SHIFT rv_number LEFT BY 1 PLACES.
-      IF rv_number NE mc_zero.
-        mv_sign = mc_sign_negative.
-      ENDIF.
+      mv_sign = mc_sign_negative.
+      rv_number = trim_number( substring( val = rv_number
+                                          off = 1
+                                          len = ( strlen( rv_number ) - 1 ) ) ).
+    ELSEIF rv_number(1) = mc_sign_positive.
+      mv_sign = mc_sign_positive.
+      rv_number = trim_number( substring( val = rv_number
+                                          off = 1
+                                          len = ( strlen( rv_number ) - 1 ) ) ).
+    ELSE.
+      mv_sign = mc_sign_positive.
+      rv_number = trim_number( rv_number ).
     ENDIF.
 
-    " Remove all non digits
-    REPLACE ALL OCCURRENCES OF REGEX '[^\d]' IN rv_number WITH ''.
-
-    IF rv_number IS INITIAL.
-      rv_number = |0|.
-      RETURN.
+    " Zero cannot be positive or negative
+    IF ( rv_number IS INITIAL   OR
+         rv_number EQ mc_zero ) AND
+         mv_sign   NE ' '.
+      RAISE EXCEPTION TYPE zcx_invalid_number.
     ENDIF.
-
-    IF rv_number = |0|.
-      RETURN.
-    ENDIF.
-
-    " Remove leading zeros
-    WHILE strlen( rv_number ) GT 1 AND
-          rv_number+0(1) = |0|.
-      SHIFT rv_number LEFT BY 1 PLACES.
-    ENDWHILE.
 
   ENDMETHOD.
 
@@ -279,11 +316,16 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * | Instance Public Method ZCL_BIG_INTEGER->CONSTRUCTOR
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] IV_NUMBER                      TYPE        STRING
+* | [!CX!] ZCX_INVALID_NUMBER
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD constructor.
 
-    mv_number = cleanup_number( iv_number ).
-    determine_sign( ).
+    TRY.
+        mv_number = cleanup_number( iv_number ).
+      CATCH zcx_invalid_number.
+        RAISE EXCEPTION TYPE zcx_invalid_number.
+    ENDTRY.
+
     mt_digits = convert_to_array( mv_number ).
 
   ENDMETHOD.
@@ -319,20 +361,6 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
          ASSIGNING FIELD-SYMBOL(<ls_digit>).
       rv_number = rv_number && <ls_digit>.
     ENDLOOP.
-
-  ENDMETHOD.
-
-
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Private Method ZCL_BIG_INTEGER->DETERMINE_SIGN
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
-  METHOD determine_sign.
-
-    IF mv_sign NE mc_sign_negative AND
-      mv_number NE mc_zero.
-      mv_sign = mc_sign_positive.
-    ENDIF.
 
   ENDMETHOD.
 
@@ -475,29 +503,58 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD multiply.
 
-    ro_result = NEW #( mc_zero ).
-
     " If any number is zero => result is zero
     IF io_bi_to_multiply->to_string( ) = mc_zero OR
        to_string( )                    = mc_zero.
+      ro_result = NEW #( mc_zero ).
       RETURN.
     ENDIF.
-
-    DATA(multiplier) = io_bi_to_multiply->to_string( ).
-    IF io_bi_to_multiply->get_sign( ) = mc_sign_negative.
-      SHIFT multiplier LEFT BY 1 PLACES.
-    ENDIF.
-
-    DATA(lt_digits) = mt_digits.
-    DO ( multiplier - 1 ) TIMES.
-      lt_digits = sum_two_numbers( it_digits        = lt_digits
-                                   it_digits_to_add = mt_digits ).
-    ENDDO.
 
     " Negative sign if signs are different
     ro_result = NEW #( COND #( WHEN mv_sign = io_bi_to_multiply->get_sign( ) THEN space
                                ELSE mc_sign_negative )
-                       && convert_to_string( lt_digits ) ).
+                       && convert_to_string( multiply_two_numbers( it_digits             = mt_digits
+                                                                   it_digits_to_multiply = io_bi_to_multiply->to_array( ) ) ) ).
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->MULTIPLY_TWO_NUMBERS
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IT_DIGITS                      TYPE        TT_DIGITS
+* | [--->] IT_DIGITS_TO_MULTIPLY          TYPE        TT_DIGITS
+* | [<-()] RT_RESULT                      TYPE        TT_DIGITS
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD multiply_two_numbers.
+
+    DATA result TYPE n LENGTH 2.
+    DATA(remainder) = 0.
+
+    " Calculation is done digit by digit and backwards (like on paper)
+    DO lines( it_digits ) TIMES.
+      DATA(pos_outer) = lines( it_digits ) - sy-index + 1.
+      DATA(position) = sy-index.
+      DO lines( it_digits_to_multiply ) TIMES .
+        DATA(pos_inner) = lines( it_digits_to_multiply ) - sy-index + 1.
+        result = it_digits[ pos_outer ] * it_digits_to_multiply[ pos_inner ] + remainder.
+        remainder = 0.
+        IF line_exists( rt_result[ position ] ).
+          result = result + rt_result[ position ].
+          rt_result[ position ] = result+1(1).
+        ELSE.
+          INSERT result+1 INTO TABLE rt_result.
+        ENDIF.
+        remainder = result(1).
+        ADD 1 TO position.
+      ENDDO.
+      IF remainder NE 0.
+        INSERT CONV num1( remainder ) INTO TABLE rt_result.
+        remainder = 0.
+      ENDIF.
+    ENDDO.
+
+    rt_result = mirror_array( rt_result ).
 
   ENDMETHOD.
 
@@ -656,7 +713,9 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
 
     IF mv_sign = io_bi_to_add->get_sign( ).
       " Summed numbers are positive => result is positive, summed numbers are negative => result is negative
-      ro_result = NEW zcl_big_integer( mv_sign &&
+      ro_result = NEW zcl_big_integer( SWITCH #( mv_sign
+                                                 WHEN mc_sign_positive THEN ||
+                                                 ELSE mc_sign_negative ) &&
                                        convert_to_string( sum_two_numbers( it_digits        = mt_digits
                                                                            it_digits_to_add = io_bi_to_add->to_array( ) ) ) ).
     ELSE.
@@ -667,13 +726,13 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
         SWITCH #( equals
                   WHEN 1 THEN io_bi_to_add->get_sign( )
                   WHEN -1 THEN mv_sign ) &&
-        convert_to_string(  SWITCH #( equals
-                                      WHEN 1
-                                           THEN subtract_two_numbers( it_digits             = io_bi_to_add->to_array( )
-                                                                      it_digits_to_subtract = mt_digits )
-                                      WHEN -1
-                                           THEN subtract_two_numbers( it_digits             = mt_digits
-                                                                      it_digits_to_subtract = io_bi_to_add->to_array( ) ) ) ) ).
+        convert_to_string( SWITCH #( equals
+                                     WHEN 1
+                                          THEN subtract_two_numbers( it_digits             = io_bi_to_add->to_array( )
+                                                                     it_digits_to_subtract = mt_digits )
+                                     WHEN -1
+                                          THEN subtract_two_numbers( it_digits             = mt_digits
+                                                                     it_digits_to_subtract = io_bi_to_add->to_array( ) ) ) ) ).
     ENDIF.
 
   ENDMETHOD.
@@ -736,6 +795,20 @@ CLASS ZCL_BIG_INTEGER IMPLEMENTATION.
     rv_number = SWITCH #( mv_sign
                           WHEN mc_sign_negative THEN mc_sign_negative && mv_number
                           ELSE mv_number ).
+
+  ENDMETHOD.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Private Method ZCL_BIG_INTEGER->TRIM_NUMBER
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] IV_NUMBER                      TYPE        STRING
+* | [<-()] RV_NUMBER                      TYPE        STRING
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  METHOD trim_number.
+
+    rv_number = |{ iv_number ALPHA = OUT }|.
+    CONDENSE rv_number.
 
   ENDMETHOD.
 ENDCLASS.
